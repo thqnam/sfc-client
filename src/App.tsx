@@ -4,10 +4,11 @@ import { WalletAdapterNetwork, WalletNotConnectedError } from '@solana/wallet-ad
 import { WalletModalProvider, WalletMultiButton, useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl, Connection, PublicKey, TokenAccountsFilter, SystemProgram, Transaction } from '@solana/web3.js';
 import { Program, AnchorProvider, setProvider, getProvider, BN } from '@coral-xyz/anchor';
-import { TOKEN_PROGRAM_ID, 
-    ASSOCIATED_TOKEN_PROGRAM_ID,  
-    getOrCreateAssociatedTokenAccount, 
-    createAssociatedTokenAccountInstruction, 
+import {
+    //TOKEN_PROGRAM_ID,
+    //ASSOCIATED_TOKEN_PROGRAM_ID,
+    getOrCreateAssociatedTokenAccount,
+    createAssociatedTokenAccountInstruction,
     getAssociatedTokenAddressSync,
 } from '@solana/spl-token';
 import { Buffer } from 'buffer';
@@ -27,6 +28,10 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
     const [balance7, setBalance7] = useState<String | null>(null);
     const [balance8, setBalance8] = useState<String | null>(null);
     const [balance9, setBalance9] = useState<String | null>(null);
+    const [balance10, setBalance10] = useState<number | null>(null);
+    const [balance11, setBalance11] = useState<number | null>(null);
+    const [balance12, setBalance12] = useState<number | null>(null);
+    const [balance13, setBalance13] = useState<number | null>(null);
     const fetchBalance = useCallback(async () => {
         if (!wallet.connected) {
             setVisible(true);
@@ -178,6 +183,20 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             .catch((error) => {
                 console.error("Error fetching IDL: ", error);
             });
+        const balance10 = await connection.getBalance(pda);
+        setBalance10(balance10 / 1e9);
+        const tokenAcc2 = await connection.getTokenAccountsByOwner(pda, tokenFilt);
+        if (tokenAcc2.value.length > 0) {
+            const publicKeyToken = tokenAcc2.value[0].pubkey;
+            const balance11 = await connection.getTokenAccountBalance(publicKeyToken);
+            setBalance11(Number(balance11.value.amount).valueOf() / 1e9);
+            const balance12 =  (Number(balance11.value.amount).valueOf() / 1e9) / (balance10 / 1e9);
+            setBalance12(balance12);
+        } else {
+            const balance11 = 0;
+            setBalance11(balance11);
+            alert(`Can't find token account`);
+        }
     }, [wallet, publicKey, endpoint, setBalance0, setBalance1, setBalance2, setBalance3, setBalance4, setBalance5, setBalance6, setVisible]);
     useEffect(() => {
         if (wallet.connected) {
@@ -331,42 +350,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             alert(error.message);
         }
     }, [publicKey, endpoint]);
-    const handleButtonCreateVaultSol = useCallback(async () => {
-        try {
-            let thatPubkey: any;
-            if (publicKey) {
-                thatPubkey = publicKey;
-            } else {
-                console.error('You not yet choose wallet');
-                return;
-            }
-            const connection = new Connection(endpoint, 'finalized');
-            const [pda] = PublicKey.findProgramAddressSync(
-                [Buffer.from("vault")],
-                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-            );
-            const createAccountIx = SystemProgram.createAccount({
-                fromPubkey: thatPubkey,
-                newAccountPubkey: pda,
-                lamports: await connection.getMinimumBalanceForRentExemption(0),
-                space: 0,
-                programId: SystemProgram.programId,
-            });
-            const transaction = new Transaction().add(createAccountIx);
-            alert(`Vault Sol account opening`);
-            const txHash = await wallet.sendTransaction(transaction, connection);
-            await connection.confirmTransaction(txHash);
-            alert(`Vault Sol account opened successful`);
-            const balance7 = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
-            const balance8 = `https://solscan.io/tx/${txHash}?cluster=devnet`;
-            setBalance7(balance7);
-            setBalance8(balance8);
-            fetchBalance();
-        } catch (error) {
-            console.log(error);
-            alert(error.message);
-        }
-    }, [publicKey, endpoint, wallet, fetchBalance]);        
+    /*
     const handleButtonCreateVaultSFC = useCallback(async () => {
         try {
             const mintString = "4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ";
@@ -416,7 +400,394 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, endpoint, wallet, fetchBalance]);    
+    }, [publicKey, endpoint, wallet, fetchBalance]);
+    */
+    const handleButtonSimulateBuy = useCallback(async () => {
+        try {
+            let t1, t2;
+            if (balance10){
+                t1 = balance10;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            if (balance11){
+                t2 = balance11;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            let k1 = 6724;
+            let amount = Number(input2).valueOf()
+            let k2 = t1 - amount;
+            let k3 = k1 / k2;
+            let k4 = k3 - t2;
+            const balance13 = k4;
+            setBalance13(balance13);
+            alert(`You will pay ${balance13} SFC - VND if you buy ${input2} Dev Sol`);
+            alert(`With price ${balance13 / amount} for each Dev Sol`);
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [balance10, balance11, input2]);
+    const handleButtonSimulateSell = useCallback(async () => {
+        try {
+            let t1, t2;
+            if (balance10){
+                t1 = balance10;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            if (balance11){
+                t2 = balance11;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            let k1 = 6724;
+            let amount = Number(input2).valueOf()
+            let k2 = t1 + amount;
+            let k3 = k1 / k2;
+            let k4 = t2 - k3;
+            const balance13 = k4;
+            setBalance13(balance13);
+            alert(`You will earn ${balance13} SFC - VND if you sell ${input2} Dev Sol`);
+            alert(`With price ${balance13 / amount} for each Dev Sol`);
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [balance10, balance11, input2]);
+    const handleButtonBuySol = useCallback(async () => {
+        try {
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [pda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault")],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            const connection = new Connection(endpoint, 'finalized');
+            const tokenFilt: TokenAccountsFilter = {
+                mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
+                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            };
+            const tokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFilt);
+            const tokenAcc2 = await connection.getParsedTokenAccountsByOwner(pda, tokenFilt);
+            let amount = Number(input2).valueOf();
+            const amountBN = new BN(amount);
+            Program.fetchIdl("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+                .then(async (IDL) => {
+                    if (IDL === null) {
+                        console.error("Error: IDL not found");
+                    } else {
+                        alert(`You buying your Sol from the vault`);
+                        const programTarget = new Program(IDL, new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX"), getProvider());
+                        let txHash = await programTarget.methods
+                            .buySol(amountBN)
+                            .accounts({
+                                donator: tokenAcc.value[0].pubkey,
+                                vaultsfc: tokenAcc2.value[0].pubkey,
+                                vaultsol: pda,
+                                signer: thatPubkey,
+                                token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                                systemProgram: SystemProgram.programId,
+                            })
+                            .rpc();
+                        await connection.confirmTransaction(txHash);
+                        alert(`You has been buyed your Sol from the vault successful`);
+                        const balance7 = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
+                        const balance8 = `https://solscan.io/tx/${txHash}?cluster=devnet`;
+                        setBalance7(balance7);
+                        setBalance8(balance8);
+                        fetchBalance();
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error fetching IDL: ", error);
+                    alert(error.message);
+                });
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [publicKey, endpoint, input2, fetchBalance]);
+    const handleButtonSellSol = useCallback(async () => {
+        try {
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [pda, bump] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault")],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            const connection = new Connection(endpoint, 'finalized');
+            const tokenFilt: TokenAccountsFilter = {
+                mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
+                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            };
+            const tokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFilt);
+            const tokenAcc2 = await connection.getParsedTokenAccountsByOwner(pda, tokenFilt);
+            let amount = Number(input2).valueOf();
+            const amountBN = new BN(amount);
+            const bumpBN = new BN(bump);
+            Program.fetchIdl("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+                .then(async (IDL) => {
+                    if (IDL === null) {
+                        console.error("Error: IDL not found");
+                    } else {
+                        alert(`You selling your Sol from the vault`);
+                        const programTarget = new Program(IDL, new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX"), getProvider());
+                        let txHash = await programTarget.methods
+                            .sellSol(amountBN, bumpBN)
+                            .accounts({
+                                donator: tokenAcc.value[0].pubkey,
+                                vaultsfc: tokenAcc2.value[0].pubkey,
+                                vaultsol: pda,
+                                signer: thatPubkey,
+                                token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                                systemProgram: SystemProgram.programId,
+                            })
+                            .rpc();
+                        await connection.confirmTransaction(txHash);
+                        alert(`You has been selled your Sol from the vault successful`);
+                        const balance7 = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
+                        const balance8 = `https://solscan.io/tx/${txHash}?cluster=devnet`;
+                        setBalance7(balance7);
+                        setBalance8(balance8);
+                        fetchBalance();
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error fetching IDL: ", error);
+                    alert(error.message);
+                });
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [publicKey, endpoint, input2, fetchBalance]);
+    const handleButtonSummonSol = useCallback(async () => {
+        try {
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const connection = new Connection(endpoint, 'finalized');
+            const [pda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault")],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            let amount = Number(input2).valueOf();
+            const amountBN = new BN(amount);
+            Program.fetchIdl("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+                .then(async (IDL) => {
+                    if (IDL === null) {
+                        console.error("Error: IDL not found");
+                    } else {
+                        alert(`You summoning your Sol from the vault`);
+                        const programTarget = new Program(IDL, new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX"), getProvider());
+                        let txHash = await programTarget.methods
+                            .summonSol(amountBN)
+                            .accounts({
+                                vault: pda,
+                                signer: thatPubkey,
+                            })
+                            .rpc();
+                        await connection.confirmTransaction(txHash);
+                        alert(`You has been summoned your Sol from the vault successful`);
+                        const balance7 = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
+                        const balance8 = `https://solscan.io/tx/${txHash}?cluster=devnet`;
+                        setBalance7(balance7);
+                        setBalance8(balance8);
+                        fetchBalance();
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error fetching IDL: ", error);
+                    alert(error.message);
+                });
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [publicKey, endpoint, input2, fetchBalance]);
+    const handleButtonTributeStable = useCallback(async () => {
+        try {
+            const [vaultDataPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault")],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            };
+            const connection = new Connection(endpoint, 'finalized');
+            const tokenFilt: TokenAccountsFilter = {
+                mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
+                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            };
+            const tokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFilt);
+            const tokenAcc2 = await connection.getParsedTokenAccountsByOwner(vaultDataPda, tokenFilt);
+            try {
+                let amount: number = Number(input2).valueOf();
+                const amountBN = new BN(amount);
+                Program.fetchIdl("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+                    .then(async (IDL) => {
+                        if (IDL === null) {
+                            console.error("Error: IDL not found");
+                        } else {
+                            alert(`You tributing your SFC - VND to the Vault`);
+                            const programTarget = new Program(IDL, new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX"), getProvider());
+                            let txHash = await programTarget.methods
+                                .tributeStable(amountBN)
+                                .accounts({
+                                    donator: tokenAcc.value[0].pubkey,
+                                    vault: tokenAcc2.value[0].pubkey,
+                                    signer: thatPubkey,
+                                    token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                                })
+                                .rpc();
+                            await connection.confirmTransaction(txHash);
+                            alert(`You has been tributed your SFC - VND to the Vault successful`);
+                            const balance7 = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
+                            const balance8 = `https://solscan.io/tx/${txHash}?cluster=devnet`;
+                            setBalance7(balance7);
+                            setBalance8(balance8);
+                            fetchBalance();
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching inner IDL: ", error);
+                        alert(error.message);
+                    });
+
+            } catch (e) {
+                console.log(`${e}`);
+            }
+        } catch (error) {
+            console.error("Error fetching outer IDL: ", error);
+            alert(error.message);
+        }
+    }, [publicKey, endpoint, input2, fetchBalance]);
+    const handleButtonTributeSol = useCallback(async () => {
+        try {
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const connection = new Connection(endpoint, 'finalized');
+            const [pda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault")],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            let amount = Number(input2).valueOf();
+            const amountBN = new BN(amount);
+            Program.fetchIdl("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+                .then(async (IDL) => {
+                    if (IDL === null) {
+                        console.error("Error: IDL not found");
+                    } else {
+                        alert(`You tributing your Sol to the vault`);
+                        const programTarget = new Program(IDL, new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX"), getProvider());
+                        let txHash = await programTarget.methods
+                            .tributeSol(amountBN)
+                            .accounts({
+                                vault: pda,
+                                signer: thatPubkey,
+                                systemProgram: SystemProgram.programId,
+                            })
+                            .rpc();
+                        await connection.confirmTransaction(txHash);
+                        alert(`You has been tributed your Sol to the vault successful`);
+                        const balance7 = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
+                        const balance8 = `https://solscan.io/tx/${txHash}?cluster=devnet`;
+                        setBalance7(balance7);
+                        setBalance8(balance8);
+                        fetchBalance();
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error fetching IDL: ", error);
+                    alert(error.message);
+                });
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [publicKey, endpoint, input2, fetchBalance]);
+    const handleButtonSummonStable = useCallback(async () => {
+        try {
+            const [vaultDataPda, bump] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault")],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            };
+            const connection = new Connection(endpoint, 'finalized');
+            const tokenFilt: TokenAccountsFilter = {
+                mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
+                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            };
+            const tokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFilt);
+            const tokenAcc2 = await connection.getParsedTokenAccountsByOwner(vaultDataPda, tokenFilt);
+            try {
+                let amount: number = Number(input2).valueOf();
+                const amountBN = new BN(amount);
+                const bumpBN = new BN(bump);
+                Program.fetchIdl("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+                    .then(async (IDL) => {
+                        if (IDL === null) {
+                            console.error("Error: IDL not found");
+                        } else {
+                            alert(`You summoning your SFC - VND from the Vault`);
+                            const programTarget = new Program(IDL, new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX"), getProvider());
+                            let txHash = await programTarget.methods
+                                .summonStable(amountBN, bumpBN)
+                                .accounts({
+                                    donator: tokenAcc.value[0].pubkey,
+                                    vault: tokenAcc2.value[0].pubkey,
+                                    authority: vaultDataPda,
+                                    signer: thatPubkey,
+                                    token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                                })
+                                .rpc();
+                            await connection.confirmTransaction(txHash);
+                            alert(`You has been summoned your SFC - VND from the Vault successful`);
+                            const balance7 = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
+                            const balance8 = `https://solscan.io/tx/${txHash}?cluster=devnet`;
+                            setBalance7(balance7);
+                            setBalance8(balance8);
+                            fetchBalance();
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching inner IDL: ", error);
+                        alert(error.message);
+                    });
+
+            } catch (e) {
+                console.log(`${e}`);
+            }
+        } catch (error) {
+            console.error("Error fetching outer IDL: ", error);
+            alert(error.message);
+        }
+    }, [publicKey, endpoint, input2, fetchBalance]);
     const handleButtonUserMessageTarget = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -509,7 +880,6 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 .catch((error) => {
                     console.error("Error fetching IDL: ", error);
                 });
-
         } catch (error) {
             alert(error.message);
         }
@@ -1646,8 +2016,10 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 </a>
                 <button onClick={handleButtonChangeName}>Change Name</button>
                 <button onClick={handleButtonUserMessage}>User Message</button>
-                <button onClick={handleButtonCreateVaultSol}>Vault Sol</button>
-                <button onClick={handleButtonCreateVaultSFC}>Vault SFC</button>
+                <button onClick={handleButtonTributeSol}>Tribute Dev Sol</button>
+                <button onClick={handleButtonSummonSol}>Summon Dev Sol</button>
+                <button onClick={handleButtonBuySol}>Buy Dev Sol</button>
+                <button onClick={handleButtonSellSol}>Sell Dev Sol</button>
             </div>
             <div>
                 <button onClick={handleButtonDepositAsset}>Deposit Target</button>
@@ -1665,6 +2037,10 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 </a>
                 <button onClick={handleButtonChangeNameTarget}>Name Target</button>
                 <button onClick={handleButtonUserMessageTarget}>Message Target</button>
+                <button onClick={handleButtonTributeStable}>Tribute Stable</button>
+                <button onClick={handleButtonSummonStable}>Summon Stable</button>
+                <button onClick={handleButtonSimulateBuy}>Simulate Buy</button>
+                <button onClick={handleButtonSimulateSell}>Simulate Sell</button>
             </div>
             {wallet.connected && (
                 <div className="wallet-info">
@@ -1676,7 +2052,10 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     <div>Wallet Asset: {balance5} VND</div>
                     <div>Stable Coin Supply: {balance2} SFC - VND</div>
                     <div>Total Asset Base: {balance4} VND</div>
-                    <div><img src="https://i.ibb.co/vxRnDKx/SFC-VND.jpg" alt="SFC - VND Logo" title='SFC - VND Logo' width="100" height="100"/></div>
+                    <div>Vault Balance: {balance10} Dev SOL</div>
+                    <div>Vault Stable Coin: {balance11} SFC - VND</div>
+                    <div>Price 1 Dev Sol: {balance12} SFC - VND</div>
+                    <div><img src="https://i.ibb.co/vxRnDKx/SFC-VND.jpg" alt="SFC - VND Logo" title='SFC - VND Logo' width="100" height="100" /></div>
                 </div>
             )}
         </>
