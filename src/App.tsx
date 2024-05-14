@@ -18,22 +18,22 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
     const wallet = useWallet();
     const { publicKey } = useWallet();
     const { setVisible } = useWalletModal();
-    const [balance0, setBalance0] = useState<String | null>(null);
-    const [balance1, setBalance1] = useState<number | null>(null);
-    const [balance2, setBalance2] = useState<number | null>(null);
-    const [balance3, setBalance3] = useState<number | null>(null);
-    const [balance4, setBalance4] = useState<number | null>(null);
-    const [balance5, setBalance5] = useState<number | null>(null);
-    const [balance6, setBalance6] = useState<String | null>(null);
-    const [balance7, setBalance7] = useState<String | null>(null);
-    const [balance8, setBalance8] = useState<String | null>(null);
-    const [balance9, setBalance9] = useState<String | null>(null);
-    const [balance10, setBalance10] = useState<number | null>(null);
-    const [balance11, setBalance11] = useState<number | null>(null);
-    const [balance12, setBalance12] = useState<number | null>(null);
-    const [balance13, setBalance13] = useState<number | null>(null);
-    const [balance14, setBalance14] = useState<number | null>(null);
-    const [balance15, setBalance15] = useState<number | null>(null);
+    const [walletAddress, setwalletAddress] = useState<String | null>(null);
+    const [walletBalance, setwalletBalance] = useState<number | null>(null);
+    const [stableCoinSupply, setstableCoinSupply] = useState<number | null>(null);
+    const [walletStableCoin, setwalletStableCoin] = useState<number | null>(null);
+    const [totalAssetBase, settotalAssetBase] = useState<number | null>(null);
+    const [walletAsset, setwalletAsset] = useState<number | null>(null);
+    const [targetAddress, settargetAddress] = useState<String | null>(null);
+    const [solanaExplorer, setsolanaExplorer] = useState<String | null>(null);
+    const [solScan, setsolScan] = useState<String | null>(null);
+    const [accountName, setaccountName] = useState<String | null>(null);
+    const [poolGasToken, setpoolGasToken] = useState<number | null>(null);
+    const [poolStableCoin, setpoolStableCoin] = useState<number | null>(null);
+    const [poolRatio, setpoolRatio] = useState<number | null>(null);
+    const [poolKValue, setpoolKValue] = useState<number | null>(null);
+    const [walletLPToken, setwalletLPToken] = useState<number | null>(null);
+    const [lpTokenSupply, setlpTokenSupply] = useState<number | null>(null);
     const [programTarget, setProgramTarget] = useState<Program | null>(null);
     const fetchBalance = useCallback(async () => {
         if (!wallet.connected) {
@@ -43,15 +43,15 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         if (!wallet.publicKey) {
             throw new WalletNotConnectedError();
         }
-        const balance0 = wallet.publicKey.toBase58();
-        setBalance0(balance0);
+        const walletAddress = wallet.publicKey.toBase58();
+        setwalletAddress(walletAddress);
         const connection = new Connection(endpoint, 'finalized');
-        const balance1 = await connection.getBalance(new PublicKey(wallet.publicKey));
-        setBalance1(balance1 / 1e9);
-        const balance2 = await connection.getTokenSupply(new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"));
-        setBalance2(Number(balance2.value.amount).valueOf() / 1e9);
-        const balance15 = await connection.getTokenSupply(new PublicKey("8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He"));
-        setBalance15(Number(balance15.value.amount).valueOf() / 1e9);
+        const walletBalance = await connection.getBalance(new PublicKey(wallet.publicKey));
+        setwalletBalance(walletBalance / 1e9);
+        const stableCoinSupply = await connection.getTokenSupply(new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"));
+        setstableCoinSupply(Number(stableCoinSupply.value.amount).valueOf() / 1e9);
+        const lpTokenSupply = await connection.getTokenSupply(new PublicKey("8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He"));
+        setlpTokenSupply(Number(lpTokenSupply.value.amount).valueOf() / 1e9);
         const tokenFilt: TokenAccountsFilter = {
             mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
             programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
@@ -59,11 +59,11 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         const tokenAcc = await connection.getTokenAccountsByOwner(wallet.publicKey, tokenFilt);
         if (tokenAcc.value.length > 0) {
             const publicKeyToken = tokenAcc.value[0].pubkey;
-            const balance3 = await connection.getTokenAccountBalance(publicKeyToken);
-            setBalance3(Number(balance3.value.amount).valueOf() / 1e9);
+            const walletStableCoin = await connection.getTokenAccountBalance(publicKeyToken);
+            setwalletStableCoin(Number(walletStableCoin.value.amount).valueOf() / 1e9);
         } else {
-            const balance3 = 0;
-            setBalance3(balance3);
+            const walletStableCoin = 0;
+            setwalletStableCoin(walletStableCoin);
             alert(`Can't find token account`);
         }
         const tokenLPFilt: TokenAccountsFilter = {
@@ -73,11 +73,11 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         const tokenLPAcc = await connection.getTokenAccountsByOwner(wallet.publicKey, tokenLPFilt);
         if (tokenAcc.value.length > 0) {
             const publicKeyToken = tokenLPAcc.value[0].pubkey;
-            const balance14 = await connection.getTokenAccountBalance(publicKeyToken);
-            setBalance14(Number(balance14.value.amount).valueOf() / 1e9);
+            const walletLPToken = await connection.getTokenAccountBalance(publicKeyToken);
+            setwalletLPToken(Number(walletLPToken.value.amount).valueOf() / 1e9);
         } else {
-            const balance14 = 0;
-            setBalance14(balance14);
+            const walletLPToken = 0;
+            setwalletLPToken(walletLPToken);
             alert(`Can't find LP token account`);
         }
         const [pda] = PublicKey.findProgramAddressSync(
@@ -87,10 +87,10 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         let accountInfo: any;
         function processAccountInfo() {
             if (accountInfo !== undefined) {
-                const balance4 = accountInfo.assetAccount.words[0];
-                setBalance4(balance4);
-                const balance13 = Number(accountInfo.kValue).valueOf() / LAMPORTS_PER_SOL;
-                setBalance13(balance13);
+                const totalAssetBase = accountInfo.assetAccount.words[0];
+                settotalAssetBase(totalAssetBase);
+                const poolKValue = Number(accountInfo.kValue).valueOf() / LAMPORTS_PER_SOL;
+                setpoolKValue(poolKValue);
             } else {
                 console.error("Account info is not yet fetched.");
             }
@@ -118,12 +118,12 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         let accountTarget: any;
         function processAccountTarget() {
             if (accountTarget !== undefined) {
-                const balance6 = accountTarget.assetTarget.toBase58();
-                setBalance6(balance6);
+                const targetAddress = accountTarget.assetTarget.toBase58();
+                settargetAddress(targetAddress);
             } else {
                 console.error("Account target is not yet fetched.");
-                const balance6 = "Non target";
-                setBalance6(balance6);
+                const targetAddress = "Non target";
+                settargetAddress(targetAddress);
                 alert(`Can't find lock target`);
             }
         }
@@ -144,10 +144,10 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         let accountInfo2: any;
         function processAccountInfo2() {
             if (accountInfo2 !== undefined) {
-                const balance5 = accountInfo2.assetAccount.words[0];
-                setBalance5(balance5);
-                const balance9 = accountInfo2.accountName;
-                setBalance9(balance9);
+                const walletAsset = accountInfo2.assetAccount.words[0];
+                setwalletAsset(walletAsset);
+                const accountName = accountInfo2.accountName;
+                setaccountName(accountName);
             } else {
                 console.error("Account info is not yet fetched.");
             }
@@ -160,26 +160,26 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 })
                 .catch(error => {
                     console.error('Error fetching account info:', error);
-                    const balance5 = 0;
-                    setBalance5(balance5);
+                    const walletAsset = 0;
+                    setwalletAsset(walletAsset);
                     alert(`Can't find asset account`);
-                    const balance9 = "";
-                    setBalance9(balance9);
+                    const accountName = "";
+                    setaccountName(accountName);
                     alert(`Can't find account name`);
                 });
         }
-        const balance10 = await connection.getBalance(pda);
-        setBalance10(balance10 / 1e9);
+        const poolGasToken = await connection.getBalance(pda);
+        setpoolGasToken(poolGasToken / 1e9);
         const tokenAcc2 = await connection.getTokenAccountsByOwner(pda, tokenFilt);
         if (tokenAcc2.value.length > 0) {
             const publicKeyToken = tokenAcc2.value[0].pubkey;
-            const balance11 = await connection.getTokenAccountBalance(publicKeyToken);
-            setBalance11(Number(balance11.value.amount).valueOf() / 1e9);
-            const balance12 = (Number(balance11.value.amount).valueOf() / 1e9) / (balance10 / 1e9);
-            setBalance12(balance12);
+            const poolStableCoin = await connection.getTokenAccountBalance(publicKeyToken);
+            setpoolStableCoin(Number(poolStableCoin.value.amount).valueOf() / 1e9);
+            const poolRatio = (Number(poolStableCoin.value.amount).valueOf() / 1e9) / (poolGasToken / 1e9);
+            setpoolRatio(poolRatio);
         } else {
-            const balance11 = 0;
-            setBalance11(balance11);
+            const poolStableCoin = 0;
+            setpoolStableCoin(poolStableCoin);
             alert(`Can't find token account`);
         }
     }, [wallet, endpoint, programTarget, publicKey, setVisible]);
@@ -243,11 +243,11 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             async function processAccountTarget() {
                 if (accountTarget !== undefined) {
                     targetKey = accountTarget.assetTarget;
-                    const balance0 = targetKey.toBase58();
-                    setBalance0(balance0);
+                    const walletAddress = targetKey.toBase58();
+                    setwalletAddress(walletAddress);
                     const connection = new Connection(endpoint, 'finalized');
-                    const balance1 = await connection.getBalance(targetKey);
-                    setBalance1(balance1 / 1e9);
+                    const walletBalance = await connection.getBalance(targetKey);
+                    setwalletBalance(walletBalance / 1e9);
                     const tokenFilt: TokenAccountsFilter = {
                         mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
                         programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
@@ -255,11 +255,11 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     const tokenAcc = await connection.getTokenAccountsByOwner(targetKey, tokenFilt);
                     if (tokenAcc.value.length > 0) {
                         const publicKeyToken = tokenAcc.value[0].pubkey;
-                        const balance3 = await connection.getTokenAccountBalance(publicKeyToken);
-                        setBalance3(Number(balance3.value.amount).valueOf() / 1e9);
+                        const walletStableCoin = await connection.getTokenAccountBalance(publicKeyToken);
+                        setwalletStableCoin(Number(walletStableCoin.value.amount).valueOf() / 1e9);
                     } else {
-                        const balance3 = 0;
-                        setBalance3(balance3);
+                        const walletStableCoin = 0;
+                        setwalletStableCoin(walletStableCoin);
                         alert(`Can't find token account`);
                     }
                     const tokenLPFilt: TokenAccountsFilter = {
@@ -269,11 +269,11 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     const tokenLPAcc = await connection.getTokenAccountsByOwner(targetKey, tokenLPFilt);
                     if (tokenAcc.value.length > 0) {
                         const publicKeyToken = tokenLPAcc.value[0].pubkey;
-                        const balance14 = await connection.getTokenAccountBalance(publicKeyToken);
-                        setBalance14(Number(balance14.value.amount).valueOf() / 1e9);
+                        const walletLPToken = await connection.getTokenAccountBalance(publicKeyToken);
+                        setwalletLPToken(Number(walletLPToken.value.amount).valueOf() / 1e9);
                     } else {
-                        const balance14 = 0;
-                        setBalance14(balance14);
+                        const walletLPToken = 0;
+                        setwalletLPToken(walletLPToken);
                         alert(`Can't find LP token account`);
                     }
                     const [pda2] = PublicKey.findProgramAddressSync(
@@ -283,10 +283,10 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     let accountInfo2: any;
                     function processAccountInfo2() {
                         if (accountInfo2 !== undefined) {
-                            const balance5 = accountInfo2.assetAccount.words[0];
-                            setBalance5(balance5);
-                            const balance9 = accountInfo2.accountName;
-                            setBalance9(balance9);
+                            const walletAsset = accountInfo2.assetAccount.words[0];
+                            setwalletAsset(walletAsset);
+                            const accountName = accountInfo2.accountName;
+                            setaccountName(accountName);
                         } else {
                             console.error("Account info is not yet fetched.");
                         }
@@ -299,39 +299,14 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                             })
                             .catch(error => {
                                 console.error('Error fetching account info:', error);
-                                const balance5 = 0;
-                                setBalance5(balance5);
+                                const walletAsset = 0;
+                                setwalletAsset(walletAsset);
                                 alert(`Can't find asset account`);
-                                const balance9 = "";
-                                setBalance9(balance9);
+                                const accountName = "";
+                                setaccountName(accountName);
                                 alert(`Can't find account name`);
                             });
                     }
-                    Program.fetchIdl("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                        .then((IDL) => {
-                            if (IDL === null) {
-                                console.error("Error: IDL not found");
-                            } else {
-                                const programTarget = new Program(IDL, new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX"), getProvider());
-                                programTarget.account.userInfor.fetch(pda2)
-                                    .then(info => {
-                                        accountInfo2 = info;
-                                        processAccountInfo2();
-                                    })
-                                    .catch(error => {
-                                        console.error('Error fetching account info:', error);
-                                        const balance5 = 0;
-                                        setBalance5(balance5);
-                                        alert(`Can't find asset account`);
-                                        const balance9 = "";
-                                        setBalance9(balance9);
-                                        alert(`Can't find account name`);
-                                    });
-                            }
-                        })
-                        .catch((error) => {
-                            console.error("Error fetching IDL: ", error);
-                        });
                     const [pda4] = PublicKey.findProgramAddressSync(
                         [Buffer.from("target", "utf8"), targetKey.toBuffer()],
                         new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
@@ -339,12 +314,12 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     let accountTarget2: any;
                     function processAccountTarget2() {
                         if (accountTarget !== undefined) {
-                            const balance6 = accountTarget2.assetTarget.toBase58();
-                            setBalance6(balance6);
+                            const targetAddress = accountTarget2.assetTarget.toBase58();
+                            settargetAddress(targetAddress);
                         } else {
                             console.error("Account target is not yet fetched.");
-                            const balance6 = "Non target";
-                            setBalance6(balance6);
+                            const targetAddress = "Non target";
+                            settargetAddress(targetAddress);
                             alert(`Can't find lock target`);
                         }
                     }
@@ -376,10 +351,10 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         }
     }, [publicKey, programTarget, endpoint]);
     const finalTransaction = useCallback(async (txHash: string, isTarget: boolean) => {
-        const balance7 = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
-        const balance8 = `https://solscan.io/tx/${txHash}?cluster=devnet`;
-        setBalance7(balance7);
-        setBalance8(balance8);
+        const solanaExplorer = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
+        const solScan = `https://solscan.io/tx/${txHash}?cluster=devnet`;
+        setsolanaExplorer(solanaExplorer);
+        setsolScan(solScan);
         if (isTarget) {
             await handleButtonClick();
         } else {
@@ -456,6 +431,226 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             alert(error.message);
         }
     }, [publicKey, programTarget, input]);
+    const handleButtonTransferAssetLinkCall = useCallback(async (linkamount: number) => {
+        let txIntru: TransactionInstruction;
+        try {
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [pda3] = PublicKey.findProgramAddressSync(
+                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            let targetKey: any;
+            if (programTarget) {
+                const result = await programTarget.account.userTarget.fetch(pda3)
+                    .then(async target => {
+                        targetKey = target.assetTarget;
+                        const [toDataPda] = PublicKey.findProgramAddressSync(
+                            [Buffer.from("client", "utf8"), targetKey.toBuffer()],
+                            new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+                        );
+                        const [targetDataPda] = PublicKey.findProgramAddressSync(
+                            [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
+                            new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+                        );
+                        const [fromDataPda] = PublicKey.findProgramAddressSync(
+                            [Buffer.from("client", "utf8"), thatPubkey.toBuffer()],
+                            new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+                        );
+                        try {
+                            const amountBN = new BN(linkamount / 100000);
+                            if (programTarget) {
+                                txIntru = await programTarget.methods
+                                    .tranferAsset(amountBN)
+                                    .accounts({
+                                        target: targetDataPda,
+                                        fromclient: fromDataPda,
+                                        toclient: toDataPda,
+                                        signer: thatPubkey,
+                                    })
+                                    .instruction();
+                                return txIntru;
+                            }
+                        } catch (e) {
+                            console.log(`${e}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching account target:', error);
+                    });
+                if (result instanceof TransactionInstruction) {
+                    txIntru = result;
+                    return txIntru;
+                }
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    }, [publicKey, programTarget]);
+    const handleButtonTransferSolLinkCall = useCallback(async (linkamount: number) => {
+        let txIntru: TransactionInstruction;
+        try {
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [pda3] = PublicKey.findProgramAddressSync(
+                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            let targetKey: any;
+            if (programTarget) {
+                const result = await programTarget.account.userTarget.fetch(pda3)
+                    .then(async target => {
+                        targetKey = target.assetTarget;
+                        try {
+                            let realamount = linkamount * LAMPORTS_PER_SOL;
+                            const amountBN = new BN(realamount);
+                            if (programTarget) {
+                                txIntru = await programTarget.methods
+                                    .tranferSol(amountBN)
+                                    .accounts({
+                                        target: targetKey,
+                                        signer: thatPubkey,
+                                        systemProgram: SystemProgram.programId,
+                                    })
+                                    .instruction();
+                                return txIntru;
+                            }
+                        } catch (e) {
+                            console.log(`${e}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching account target:', error);
+                    });
+                if (result instanceof TransactionInstruction) {
+                    txIntru = result;
+                    return txIntru;
+                }
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    }, [publicKey, programTarget]);
+    const handleButtonTransferSFCLinkCall = useCallback(async (linkamount: number) => {
+        let txIntru: TransactionInstruction;
+        try {
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [pda3] = PublicKey.findProgramAddressSync(
+                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            let targetKey: any;
+            if (programTarget) {
+                const result = await programTarget.account.userTarget.fetch(pda3)
+                    .then(async target => {
+                        targetKey = target.assetTarget;
+                        const connection = new Connection(endpoint, 'finalized');
+                        const tokenFiltSFC: TokenAccountsFilter = {
+                            mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
+                            programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+                        };
+                        const fromTokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFiltSFC);
+                        const toTokenAcc = await connection.getParsedTokenAccountsByOwner(targetKey, tokenFiltSFC);
+                        try {
+                            let realamount = linkamount * LAMPORTS_PER_SOL;
+                            const amountBN = new BN(realamount);
+                            if (programTarget) {
+                                txIntru = await programTarget.methods
+                                    .tranferToken(amountBN, true)
+                                    .accounts({
+                                        token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                                        fromtoken: fromTokenAcc.value[0].pubkey,
+                                        totoken: toTokenAcc.value[0].pubkey,
+                                        signer: thatPubkey,
+                                    })
+                                    .instruction();
+                                return txIntru;
+                            }
+                        } catch (e) {
+                            console.log(`${e}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching account target:', error);
+                    });
+                if (result instanceof TransactionInstruction) {
+                    txIntru = result;
+                    return txIntru;
+                }
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    }, [publicKey, programTarget, endpoint]);
+    const handleButtonTransferLPLinkCall = useCallback(async (linkamount: number) => {
+        let txIntru: TransactionInstruction;
+        try {
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [pda3] = PublicKey.findProgramAddressSync(
+                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            let targetKey: any;
+            if (programTarget) {
+                const result = await programTarget.account.userTarget.fetch(pda3)
+                    .then(async target => {
+                        targetKey = target.assetTarget;
+                        const connection = new Connection(endpoint, 'finalized');
+                        const tokenFiltSFC: TokenAccountsFilter = {
+                            mint: new PublicKey("8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He"),
+                            programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+                        };
+                        const fromTokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFiltSFC);
+                        const toTokenAcc = await connection.getParsedTokenAccountsByOwner(targetKey, tokenFiltSFC);
+                        try {
+                            let realamount = linkamount * LAMPORTS_PER_SOL;
+                            const amountBN = new BN(realamount);
+                            if (programTarget) {
+                                txIntru = await programTarget.methods
+                                    .tranferToken(amountBN, false)
+                                    .accounts({
+                                        token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                                        fromtoken: fromTokenAcc.value[0].pubkey,
+                                        totoken: toTokenAcc.value[0].pubkey,
+                                        signer: thatPubkey,
+                                    })
+                                    .instruction();
+                                return txIntru;
+                            }
+                        } catch (e) {
+                            console.log(`${e}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching account target:', error);
+                    });
+                if (result instanceof TransactionInstruction) {
+                    txIntru = result;
+                    return txIntru;
+                }
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    }, [publicKey, programTarget, endpoint]);
     /*
     const handleButtonCreateVaultSFC = useCallback(async () => {
         try {
@@ -508,17 +703,17 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         try {
             await fetchBalance();
             let t1: any, t2: any;
-            if (balance10) {
-                t1 = balance10 * LAMPORTS_PER_SOL;
+            if (poolGasToken) {
+                t1 = poolGasToken * LAMPORTS_PER_SOL;
             } else {
                 console.error('You not yet choose wallet');
             }
-            if (balance11) {
-                t2 = balance11 * LAMPORTS_PER_SOL;
+            if (poolStableCoin) {
+                t2 = poolStableCoin * LAMPORTS_PER_SOL;
             } else {
                 console.error('You not yet choose wallet');
             }
-            let k1 = Number(balance13).valueOf() * LAMPORTS_PER_SOL;
+            let k1 = Number(poolKValue).valueOf() * LAMPORTS_PER_SOL;
             let amount = Number(input2).valueOf();
             let realamount = amount * LAMPORTS_PER_SOL;
             let k2 = t1 - realamount;
@@ -533,22 +728,22 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [balance10, balance11, balance13, fetchBalance, input2]);
+    }, [poolGasToken, poolStableCoin, poolKValue, fetchBalance, input2]);
     const handleButtonSimulateSell = useCallback(async () => {
         try {
             await fetchBalance();
             let t1: any, t2: any;
-            if (balance10) {
-                t1 = balance10 * LAMPORTS_PER_SOL;
+            if (poolGasToken) {
+                t1 = poolGasToken * LAMPORTS_PER_SOL;
             } else {
                 console.error('You not yet choose wallet');
             }
-            if (balance11) {
-                t2 = balance11 * LAMPORTS_PER_SOL;
+            if (poolStableCoin) {
+                t2 = poolStableCoin * LAMPORTS_PER_SOL;
             } else {
                 console.error('You not yet choose wallet');
             }
-            let k1 = Number(balance13).valueOf() * LAMPORTS_PER_SOL;
+            let k1 = Number(poolKValue).valueOf() * LAMPORTS_PER_SOL;
             let amount = Number(input2).valueOf();
             let realamount = amount * LAMPORTS_PER_SOL;
             let k2 = t1 + realamount;
@@ -563,29 +758,29 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [balance10, balance11, balance13, fetchBalance, input2]);
+    }, [poolGasToken, poolStableCoin, poolKValue, fetchBalance, input2]);
     const handleButtonSimulateMintLP = useCallback(async () => {
         try {
             await fetchBalance();
             let t0: any, t1: any, t2: any;
-            if (balance15) {
-                t0 = balance15 * LAMPORTS_PER_SOL;
+            if (lpTokenSupply) {
+                t0 = lpTokenSupply * LAMPORTS_PER_SOL;
             } else {
                 console.error('You not yet choose wallet');
             }
-            if (balance10) {
-                t1 = balance10 * LAMPORTS_PER_SOL;
+            if (poolGasToken) {
+                t1 = poolGasToken * LAMPORTS_PER_SOL;
             } else {
                 console.error('You not yet choose wallet');
             }
-            if (balance11) {
-                t2 = balance11 * LAMPORTS_PER_SOL;
+            if (poolStableCoin) {
+                t2 = poolStableCoin * LAMPORTS_PER_SOL;
             } else {
                 console.error('You not yet choose wallet');
             }
             let k0 = Number(input2).valueOf();
             let k1 = k0 / t0 * t1;
-            let k2 = Number(balance12).valueOf();
+            let k2 = Number(poolRatio).valueOf();
             let k3 = k1 * k2;
             let k4 = k3 * LAMPORTS_PER_SOL;
             let k5 = t1 + Number(input2).valueOf() * LAMPORTS_PER_SOL;
@@ -595,36 +790,36 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             alert(`If you want mint ${input2} LPSFC from the LP Pool Vault`);
             alert(`You will provide ${k1} Dev Sol to the LP Pool Vault`);
             alert(`And will provide ${amount_sfc} SFC - VND at the same time`);
-            alert(`With ratio Dev Sol 1 : ${balance12} SFC - VND`);
+            alert(`With ratio Dev Sol 1 : ${poolRatio} SFC - VND`);
             alert(`And pool K value will be change to ${k7 / LAMPORTS_PER_SOL}`);
             return amount_sfc;
         } catch (error) {
             console.log(error);
             alert(error.message);
         }
-    }, [balance10, balance11, balance12, balance15, fetchBalance, input2]);
+    }, [poolGasToken, poolStableCoin, poolRatio, lpTokenSupply, fetchBalance, input2]);
     const handleButtonSimulateBurnLP = useCallback(async () => {
         try {
             await fetchBalance();
             let t0: any, t1: any, t2: any;
-            if (balance15) {
-                t0 = balance15 * LAMPORTS_PER_SOL;
+            if (lpTokenSupply) {
+                t0 = lpTokenSupply * LAMPORTS_PER_SOL;
             } else {
                 console.error('You not yet choose wallet');
             }
-            if (balance10) {
-                t1 = balance10 * LAMPORTS_PER_SOL;
+            if (poolGasToken) {
+                t1 = poolGasToken * LAMPORTS_PER_SOL;
             } else {
                 console.error('You not yet choose wallet');
             }
-            if (balance11) {
-                t2 = balance11 * LAMPORTS_PER_SOL;
+            if (poolStableCoin) {
+                t2 = poolStableCoin * LAMPORTS_PER_SOL;
             } else {
                 console.error('You not yet choose wallet');
             }
             let k0 = Number(input2).valueOf();
             let k1 = k0 / t0 * t1;
-            let k2 = Number(balance12).valueOf();
+            let k2 = Number(poolRatio).valueOf();
             let k3 = k1 * k2;
             let k4 = k3 * LAMPORTS_PER_SOL;
             let k5 = t1 - Number(input2).valueOf() * LAMPORTS_PER_SOL;
@@ -634,14 +829,35 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             alert(`If you want burn ${input2} LPSFC to the LP Pool Vault`);
             alert(`You want withdraw ${k1} Dev Sol from the LP Pool Vault`);
             alert(`And will withdraw ${amount_sfc} SFC - VND at the same time`);
-            alert(`With ratio Dev Sol 1 : ${balance12} SFC - VND`);
+            alert(`With ratio Dev Sol 1 : ${poolRatio} SFC - VND`);
             alert(`And pool K value will be change to ${k7 / LAMPORTS_PER_SOL}`);
             return amount_sfc;
         } catch (error) {
             console.log(error);
             alert(error.message);
         }
-    }, [balance10, balance11, balance12, balance15, fetchBalance, input2]);
+    }, [poolGasToken, poolStableCoin, poolRatio, lpTokenSupply, fetchBalance, input2]);
+    const handleButtonSimulateBurnLPPlus = useCallback(async () => {
+        try {
+            let t0: any, t1: any;
+            if (lpTokenSupply) {
+                t0 = lpTokenSupply * LAMPORTS_PER_SOL;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            if (poolGasToken) {
+                t1 = poolGasToken * LAMPORTS_PER_SOL;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            let k0 = Number(input2).valueOf();
+            let k1 = k0 / t0 * t1;
+            return k1;
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [poolGasToken, lpTokenSupply, input2]);
     const handleButtonSummonLP = useCallback(async () => {
         try {
             const amountLinkCall = await handleButtonSimulateMintLP();
@@ -672,7 +888,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             let amount = Number(input2).valueOf();
             let realamount = amount * LAMPORTS_PER_SOL;
             const amountBN = new BN(realamount);
-            let ratio = Number(balance12).valueOf();
+            let ratio = Number(poolRatio).valueOf();
             let realratio = ratio * LAMPORTS_PER_SOL;
             const ratioBN = new BN(realratio);
             const bumpBN = new BN(bump);
@@ -692,7 +908,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     })
                     .instruction();
                 let transaction = new Transaction().add(txIntru1);
-                if (input != null) {
+                if (input !== "") {
                     const result = await handleButtonUserMessageLinkCall();
                     if (result instanceof TransactionInstruction) {
                         let intru2: TransactionInstruction | null = null;
@@ -710,7 +926,82 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateMintLP, publicKey, endpoint, input2, balance12, programTarget, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [handleButtonSimulateMintLP, publicKey, endpoint, input2, poolRatio, programTarget, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    const handleButtonSummonLPTarget = useCallback(async () => {
+        try {
+            const amountLinkCall = await handleButtonSimulateMintLP();
+            let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
+            let mint = new PublicKey(mintString);
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [pda, bump] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault")],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            const connection = new Connection(endpoint, 'finalized');
+            const tokenFiltSFC: TokenAccountsFilter = {
+                mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
+                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            };
+            const tokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFiltSFC);
+            const tokenAcc2 = await connection.getParsedTokenAccountsByOwner(pda, tokenFiltSFC);
+            const tokenFiltLP: TokenAccountsFilter = {
+                mint: new PublicKey("8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He"),
+                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            };
+            const tokenAcc3 = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFiltLP);
+            let amount = Number(input2).valueOf();
+            let realamount = amount * LAMPORTS_PER_SOL;
+            const amountBN = new BN(realamount);
+            let ratio = Number(poolRatio).valueOf();
+            let realratio = ratio * LAMPORTS_PER_SOL;
+            const ratioBN = new BN(realratio);
+            const bumpBN = new BN(bump);
+            if (programTarget) {
+                alert(`You providing your liquidity to the vault`);
+                let txIntru1 = await programTarget.methods
+                    .provideLiquidity(amountBN, ratioBN, bumpBN)
+                    .accounts({
+                        donatorsfc: tokenAcc.value[0].pubkey,
+                        vaultsfc: tokenAcc2.value[0].pubkey,
+                        donatorlp: tokenAcc3.value[0].pubkey,
+                        vaultsol: pda,
+                        mint: mint,
+                        signer: thatPubkey,
+                        token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                        systemProgram: SystemProgram.programId,
+                    })
+                    .instruction();
+                let transaction = new Transaction().add(txIntru1);
+                const result = await handleButtonTransferLPLinkCall(amount);
+                if (result instanceof TransactionInstruction) {
+                    let intru2: TransactionInstruction | null = null;
+                    intru2 = result;
+                    transaction.add(intru2);
+                }
+                if (input !== "") {
+                    const result = await handleButtonUserMessageLinkCall();
+                    if (result instanceof TransactionInstruction) {
+                        let intru3: TransactionInstruction | null = null;
+                        intru3 = result;
+                        transaction.add(intru3);
+                    }
+                }
+                let txHash = await wallet.sendTransaction(transaction, connection);
+                await connection.confirmTransaction(txHash);
+                alert(`You has been provided your liquidity to the vault successful`);
+                finalTransaction(txHash, false);
+            }
+            return amountLinkCall;
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [handleButtonSimulateMintLP, publicKey, endpoint, input2, poolRatio, programTarget, handleButtonTransferLPLinkCall, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonSummonLPLC = useCallback(async () => {
         try {
             let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
@@ -740,7 +1031,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             let amount = Number(input2).valueOf();
             let realamount = amount * LAMPORTS_PER_SOL;
             const amountBN = new BN(realamount);
-            let ratio = Number(balance12).valueOf();
+            let ratio = Number(poolRatio).valueOf();
             let realratio = ratio * LAMPORTS_PER_SOL;
             const ratioBN = new BN(realratio);
             const bumpBN = new BN(bump);
@@ -764,7 +1055,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, endpoint, input2, balance12, programTarget]);
+    }, [publicKey, endpoint, input2, poolRatio, programTarget]);
     const handleButtonBuySol = useCallback(async () => {
         try {
             const amountLinkCall = await handleButtonSimulateBuy();
@@ -802,7 +1093,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     })
                     .instruction();
                 let transaction = new Transaction().add(txIntru1);
-                if (input != null) {
+                if (input !== "") {
                     const result = await handleButtonUserMessageLinkCall();
                     if (result instanceof TransactionInstruction) {
                         let intru2: TransactionInstruction | null = null;
@@ -821,6 +1112,68 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             alert(error.message);
         }
     }, [handleButtonSimulateBuy, publicKey, endpoint, input2, programTarget, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    const handleButtonBuySolTarget = useCallback(async () => {
+        try {
+            const amountLinkCall = await handleButtonSimulateBuy();
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [pda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault")],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            const connection = new Connection(endpoint, 'finalized');
+            const tokenFilt: TokenAccountsFilter = {
+                mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
+                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            };
+            const tokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFilt);
+            const tokenAcc2 = await connection.getParsedTokenAccountsByOwner(pda, tokenFilt);
+            let amount = Number(input2).valueOf();
+            let realamount = amount * LAMPORTS_PER_SOL;
+            const amountBN = new BN(realamount);
+            if (programTarget) {
+                alert(`You buy your Dev Sol from the vault`);
+                let txIntru1 = await programTarget.methods
+                    .buySol(amountBN)
+                    .accounts({
+                        donator: tokenAcc.value[0].pubkey,
+                        vaultsfc: tokenAcc2.value[0].pubkey,
+                        vaultsol: pda,
+                        signer: thatPubkey,
+                        token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                        systemProgram: SystemProgram.programId,
+                    })
+                    .instruction();
+                let transaction = new Transaction().add(txIntru1);
+                const result = await handleButtonTransferSolLinkCall(amount);
+                if (result instanceof TransactionInstruction) {
+                    let intru2: TransactionInstruction | null = null;
+                    intru2 = result;
+                    transaction.add(intru2);
+                }
+                if (input !== "") {
+                    const result = await handleButtonUserMessageTargetLinkCall(new PublicKey(String(targetAddress).valueOf()));
+                    if (result instanceof TransactionInstruction) {
+                        let intru3: TransactionInstruction | null = null;
+                        intru3 = result;
+                        transaction.add(intru3);
+                    }
+                }
+                let txHash = await wallet.sendTransaction(transaction, connection);
+                await connection.confirmTransaction(txHash);
+                alert(`You has been buyed your Dev Sol from the vault successful`);
+                finalTransaction(txHash, false);
+            }
+            return amountLinkCall;
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [handleButtonSimulateBuy, publicKey, endpoint, input2, programTarget, handleButtonTransferSolLinkCall, input, wallet, finalTransaction, handleButtonUserMessageTargetLinkCall, targetAddress]);
     const handleButtonBuySolLC = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -894,7 +1247,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             let realamount = amount * LAMPORTS_PER_SOL;
             const amountBN = new BN(realamount);
             const bumpBN = new BN(bump);
-            let ratio = Number(balance12).valueOf();
+            let ratio = Number(poolRatio).valueOf();
             let realratio = ratio * LAMPORTS_PER_SOL;
             const ratioBN = new BN(realratio);
             if (programTarget) {
@@ -913,7 +1266,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     })
                     .instruction();
                 let transaction = new Transaction().add(txIntru1);
-                if (input != null) {
+                if (input !== "") {
                     const result = await handleButtonUserMessageLinkCall();
                     if (result instanceof TransactionInstruction) {
                         let intru2: TransactionInstruction | null = null;
@@ -931,7 +1284,88 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateBurnLP, publicKey, endpoint, input2, balance12, programTarget, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [handleButtonSimulateBurnLP, publicKey, endpoint, input2, poolRatio, programTarget, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    const handleButtonTributeLPTarget = useCallback(async () => {
+        try {
+            const amountLinkCall = await handleButtonSimulateBurnLP();
+            let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
+            let mint = new PublicKey(mintString);
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [pda, bump] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault")],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            const connection = new Connection(endpoint, 'finalized');
+            const tokenFiltSFC: TokenAccountsFilter = {
+                mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
+                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            };
+            const tokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFiltSFC);
+            const tokenAcc2 = await connection.getParsedTokenAccountsByOwner(pda, tokenFiltSFC);
+            const tokenFiltLP: TokenAccountsFilter = {
+                mint: new PublicKey("8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He"),
+                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            };
+            const tokenAcc3 = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFiltLP);
+            let amount = Number(input2).valueOf();
+            let realamount = amount * LAMPORTS_PER_SOL;
+            const amountBN = new BN(realamount);
+            const bumpBN = new BN(bump);
+            let ratio = Number(poolRatio).valueOf();
+            let realratio = ratio * LAMPORTS_PER_SOL;
+            const ratioBN = new BN(realratio);
+            if (programTarget) {
+                alert(`You withdrawing your liquidity from the vault`);
+                let txIntru1 = await programTarget.methods
+                    .withdrawLiquidity(amountBN, ratioBN, bumpBN)
+                    .accounts({
+                        donatorsfc: tokenAcc.value[0].pubkey,
+                        vaultsfc: tokenAcc2.value[0].pubkey,
+                        donatorlp: tokenAcc3.value[0].pubkey,
+                        vaultsol: pda,
+                        mint: mint,
+                        signer: thatPubkey,
+                        token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                        systemProgram: SystemProgram.programId,
+                    })
+                    .instruction();
+                let transaction = new Transaction().add(txIntru1);
+                const result1 = await handleButtonTransferSFCLinkCall(Number(amountLinkCall).valueOf());
+                    if (result1 instanceof TransactionInstruction) {
+                        let intru2: TransactionInstruction | null = null;
+                        intru2 = result1;
+                        transaction.add(intru2);
+                    }
+                const result2 = await handleButtonTransferSolLinkCall(Number(await handleButtonSimulateBurnLPPlus()).valueOf());
+                if (result2 instanceof TransactionInstruction) {
+                    let intru3: TransactionInstruction | null = null;
+                    intru3 = result2;
+                    transaction.add(intru3);
+                }
+                if (input !== "") {
+                    const result = await handleButtonUserMessageLinkCall();
+                    if (result instanceof TransactionInstruction) {
+                        let intru4: TransactionInstruction | null = null;
+                        intru4 = result;
+                        transaction.add(intru4);
+                    }
+                }
+                let txHash = await wallet.sendTransaction(transaction, connection);
+                await connection.confirmTransaction(txHash);
+                alert(`You has been withdrawed your Sol from the vault successful`);
+                finalTransaction(txHash, false);
+            }
+            return amountLinkCall;
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [handleButtonSimulateBurnLP, publicKey, endpoint, input2, poolRatio, programTarget, handleButtonTransferSFCLinkCall, handleButtonTransferSolLinkCall, handleButtonSimulateBurnLPPlus, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonTributeLPLC = useCallback(async () => {
         try {
             let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
@@ -962,7 +1396,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             let realamount = amount * LAMPORTS_PER_SOL;
             const amountBN = new BN(realamount);
             const bumpBN = new BN(bump);
-            let ratio = Number(balance12).valueOf();
+            let ratio = Number(poolRatio).valueOf();
             let realratio = ratio * LAMPORTS_PER_SOL;
             const ratioBN = new BN(realratio);
             if (programTarget) {
@@ -985,7 +1419,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, endpoint, input2, balance12, programTarget]);
+    }, [publicKey, endpoint, input2, poolRatio, programTarget]);
     const handleButtonSellSol = useCallback(async () => {
         try {
             const amountLinkCall = await handleButtonSimulateSell();
@@ -1024,7 +1458,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     })
                     .instruction();
                 let transaction = new Transaction().add(txIntru1);
-                if (input != null) {
+                if (input !== "") {
                     const result = await handleButtonUserMessageLinkCall();
                     if (result instanceof TransactionInstruction) {
                         let intru2: TransactionInstruction | null = null;
@@ -1043,6 +1477,69 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             alert(error.message);
         }
     }, [handleButtonSimulateSell, publicKey, endpoint, input2, programTarget, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    const handleButtonSellSolTarget = useCallback(async () => {
+        try {
+            const amountLinkCall = await handleButtonSimulateSell();
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [pda, bump] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault")],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            const connection = new Connection(endpoint, 'finalized');
+            const tokenFilt: TokenAccountsFilter = {
+                mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
+                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            };
+            const tokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFilt);
+            const tokenAcc2 = await connection.getParsedTokenAccountsByOwner(pda, tokenFilt);
+            let amount = Number(input2).valueOf();
+            let realamount = amount * LAMPORTS_PER_SOL;
+            const amountBN = new BN(realamount);
+            const bumpBN = new BN(bump);
+            if (programTarget) {
+                alert(`You selling your Sol from the vault`);
+                let txIntru1 = await programTarget.methods
+                    .sellSol(amountBN, bumpBN)
+                    .accounts({
+                        donator: tokenAcc.value[0].pubkey,
+                        vaultsfc: tokenAcc2.value[0].pubkey,
+                        vaultsol: pda,
+                        signer: thatPubkey,
+                        token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                        systemProgram: SystemProgram.programId,
+                    })
+                    .instruction();
+                let transaction = new Transaction().add(txIntru1);
+                const result = await handleButtonTransferSFCLinkCall(Number(amountLinkCall).valueOf());
+                if (result instanceof TransactionInstruction) {
+                    let intru2: TransactionInstruction | null = null;
+                    intru2 = result;
+                    transaction.add(intru2);
+                }
+                if (input !== "") {
+                    const result = await handleButtonUserMessageTargetLinkCall(new PublicKey(String(targetAddress).valueOf()));
+                    if (result instanceof TransactionInstruction) {
+                        let intru3: TransactionInstruction | null = null;
+                        intru3 = result;
+                        transaction.add(intru3);
+                    }
+                }
+                let txHash = await wallet.sendTransaction(transaction, connection);
+                await connection.confirmTransaction(txHash);
+                alert(`You has been selled your Sol from the vault successful`);
+                finalTransaction(txHash, false);
+            }
+            return amountLinkCall;
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [handleButtonSimulateSell, publicKey, endpoint, input2, programTarget, handleButtonTransferSFCLinkCall, input, wallet, finalTransaction, handleButtonUserMessageTargetLinkCall, targetAddress]);
     const handleButtonSellSolLC = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -1502,7 +1999,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     })
                     .instruction();
                 let transaction = new Transaction().add(txIntru1);
-                if (input != null) {
+                if (input !== "") {
                     const result = await handleButtonUserMessageLinkCall();
                     if (result instanceof TransactionInstruction) {
                         let intru2: TransactionInstruction | null = null;
@@ -1543,7 +2040,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     mint
                 );
                 const transaction = new Transaction().add(ataInstruction);
-                if (input != null) {
+                if (input !== "") {
                     const result = await handleButtonUserMessageLinkCall();
                     if (result instanceof TransactionInstruction) {
                         let intru2: TransactionInstruction | null = null;
@@ -1588,7 +2085,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     mint
                 );
                 const transaction = new Transaction().add(ataInstruction);
-                if (input != null) {
+                if (input !== "") {
                     const result = await handleButtonUserMessageLinkCall();
                     if (result instanceof TransactionInstruction) {
                         let intru2: TransactionInstruction | null = null;
@@ -1632,7 +2129,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     })
                     .instruction();
                 let transaction = new Transaction().add(txIntru1);
-                if (input != null) {
+                if (input !== "") {
                     const result = await handleButtonUserMessageLinkCall();
                     if (result instanceof TransactionInstruction) {
                         let intru2: TransactionInstruction | null = null;
@@ -1666,14 +2163,16 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             const connection = new Connection(endpoint, 'finalized');
             if (programTarget) {
                 alert(`You locking to this target`);
-                let txHash = await programTarget.methods
+                let txIntru = await programTarget.methods
                     .lockTarget(targetKey)
                     .accounts({
                         target: targetDataPda,
                         signer: thatPubkey,
                         systemProgram: SystemProgram.programId,
                     })
-                    .rpc();
+                    .instruction();
+                let transaction = new Transaction().add(txIntru);
+                let txHash = await wallet.sendTransaction(transaction, connection);
                 await connection.confirmTransaction(txHash);
                 alert(`You has been lock to this target successful`);
                 finalTransaction(txHash, false);
@@ -1681,7 +2180,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         } catch (error) {
             alert(error.message);
         }
-    }, [input, publicKey, endpoint, programTarget, finalTransaction]);
+    }, [input, publicKey, endpoint, programTarget, wallet, finalTransaction]);
     const handleButtonTransferSFC = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -1722,7 +2221,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                                 })
                                 .instruction();
                             let transaction = new Transaction().add(txIntru1);
-                            if (input !== null || input !== "") {
+                            if (input !== "") {
                                 const result = await handleButtonUserMessageTargetLinkCall(targetKey);
                                 if (result instanceof TransactionInstruction) {
                                     let intru2: TransactionInstruction | null = null;
@@ -1795,7 +2294,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                                 })
                                 .instruction();
                             let transaction = new Transaction().add(txIntru1);
-                            if (input !== null || input !== "") {
+                            if (input !== "") {
                                 const result = await handleButtonUserMessageTargetLinkCall(targetKey);
                                 if (result instanceof TransactionInstruction) {
                                     let intru2: TransactionInstruction | null = null;
@@ -1873,7 +2372,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                                 })
                                 .instruction();
                             let transaction = new Transaction().add(txIntru1);
-                            if (input !== null || input !== "") {
+                            if (input !== "") {
                                 const result = await handleButtonUserMessageTargetLinkCall(targetKey);
                                 if (result instanceof TransactionInstruction) {
                                     let intru2: TransactionInstruction | null = null;
@@ -1945,7 +2444,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                                 })
                                 .instruction();
                             let transaction = new Transaction().add(txIntru1);
-                            if (input !== null || input !== "") {
+                            if (input !== "") {
                                 const result = await handleButtonUserMessageTargetLinkCall(targetKey);
                                 if (result instanceof TransactionInstruction) {
                                     let intru2: TransactionInstruction | null = null;
@@ -2019,7 +2518,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                                 })
                                 .instruction();
                             let transaction = new Transaction().add(txIntru1);
-                            if (input !== null || input !== "") {
+                            if (input !== "") {
                                 const result = await handleButtonUserMessageTargetLinkCall(targetKey);
                                 if (result instanceof TransactionInstruction) {
                                     let intru2: TransactionInstruction | null = null;
@@ -2102,7 +2601,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         })
                         .instruction();
                     let transaction = new Transaction().add(txIntru1);
-                    if (input != null) {
+                    if (input !== "") {
                         const result = await handleButtonUserMessageLinkCall();
                         if (result instanceof TransactionInstruction) {
                             let intru2: TransactionInstruction | null = null;
@@ -2232,7 +2731,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         })
                         .instruction();
                     let transaction = new Transaction().add(txIntru1);
-                    if (input != null) {
+                    if (input !== "") {
                         const result = await handleButtonUserMessageLinkCall();
                         if (result instanceof TransactionInstruction) {
                             let intru2: TransactionInstruction | null = null;
@@ -2254,6 +2753,83 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             alert(error.message);
         }
     }, [publicKey, endpoint, wallet, input2, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
+    const handleButtonSummonTargetNew = useCallback(async () => {
+        try {
+            let mintString = "4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ";
+            let mint = new PublicKey(mintString);
+            const [vaultDataPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault")],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            };
+            const [donatorDataPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("client", "utf8"), thatPubkey.toBuffer()],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            const connection = new Connection(endpoint, 'finalized');
+            let thatWallet: any;
+            if (wallet && wallet.wallet) {
+                thatWallet = wallet
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const tokenAccount = await getOrCreateAssociatedTokenAccount(
+                connection,
+                thatWallet,
+                mint,
+                thatPubkey
+            )
+            try {
+                let amount: number = Number(input2).valueOf();
+                let realamount = amount * LAMPORTS_PER_SOL;
+                const amountBN = new BN(realamount);
+                if (programTarget) {
+                    alert(`You summoning your asset from the Vault`);
+                    let txIntru1 = await programTarget.methods
+                        .summonAsset(amountBN)
+                        .accounts({
+                            mint: mint,
+                            tk: tokenAccount.address,
+                            donator: donatorDataPda,
+                            vault: vaultDataPda,
+                            signer: thatPubkey,
+                            token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                        })
+                        .instruction();
+                    let transaction = new Transaction().add(txIntru1);
+                    const result = await handleButtonTransferAssetLinkCall(realamount);
+                    if (result instanceof TransactionInstruction) {
+                        let intru2: TransactionInstruction | null = null;
+                        intru2 = result;
+                        transaction.add(intru2);
+                    }
+                    if (input !== "") {
+                        const result = await handleButtonUserMessageTargetLinkCall(new PublicKey(String(targetAddress).valueOf()));
+                        if (result instanceof TransactionInstruction) {
+                            let intru3: TransactionInstruction | null = null;
+                            intru3 = result;
+                            transaction.add(intru3);
+                        }
+                    }
+                    let txHash = await wallet.sendTransaction(transaction, connection);
+                    await connection.confirmTransaction(txHash);
+                    alert(`You summoned your asset from the Vault successful`);
+                    finalTransaction(txHash, false);
+                }
+            } catch (e) {
+                console.log(`${e}`);
+            }
+
+        } catch (error) {
+            console.error("Error fetching outer IDL: ", error);
+            alert(error.message);
+        }
+    }, [publicKey, endpoint, wallet, input2, programTarget, handleButtonTransferAssetLinkCall, input, finalTransaction, handleButtonUserMessageTargetLinkCall, targetAddress]);
     const handleButtonSummonAssetLinkCall = useCallback(async (amountLinkCall: number) => {
         try {
             let mintString = "4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ";
@@ -2367,7 +2943,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                                 })
                                 .instruction();
                             let transaction = new Transaction().add(txIntru1);
-                            if (input !== null || input !== "") {
+                            if (input !== "") {
                                 const result = await handleButtonUserMessageTargetLinkCall(targetKey);
                                 if (result instanceof TransactionInstruction) {
                                     let intru2: TransactionInstruction | null = null;
@@ -2383,103 +2959,6 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     } catch (e) {
                         console.log(`${e}`);
                     }
-                }
-            }
-            if (programTarget) {
-                programTarget.account.userTarget.fetch(pda3)
-                    .then(target => {
-                        accountTarget = target;
-                        processAccountTarget();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
-            }
-
-        } catch (error) {
-            console.error("Error fetching outer IDL: ", error);
-            alert(error.message);
-        }
-    }, [publicKey, programTarget, endpoint, wallet, input2, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
-    const handleButtonSummonTarget = useCallback(async () => {
-        try {
-            let thatPubkey: any;
-            if (publicKey) {
-                thatPubkey = publicKey;
-            } else {
-                console.error('You not yet choose wallet');
-            }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-            );
-            let accountTarget: any;
-            let targetKey: any;
-            async function processAccountTarget() {
-                if (accountTarget !== undefined) {
-                    targetKey = accountTarget.assetTarget;
-                    let mintString = "4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ";
-                    let mint = new PublicKey(mintString);
-                    const [vaultDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("vault")],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const [playerDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("client", "utf8"), targetKey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const [targetDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const connection = new Connection(endpoint, 'finalized');
-                    let thatWallet: any;
-                    if (wallet && wallet.wallet) {
-                        thatWallet = wallet
-                    } else {
-                        console.error('You not yet choose wallet');
-                    }
-                    const tokenAccount = await getOrCreateAssociatedTokenAccount(
-                        connection,
-                        thatWallet,
-                        mint,
-                        thatPubkey
-                    )
-                    try {
-                        let amount: number = Number(input2).valueOf();
-                        let realamount = amount * LAMPORTS_PER_SOL;
-                        const amountBN = new BN(realamount);
-                        if (programTarget) {
-                            alert(`You summoning your asset for this target`);
-                            let txIntru1 = await programTarget.methods
-                                .summonTarget(amountBN)
-                                .accounts({
-                                    target: targetDataPda,
-                                    client: playerDataPda,
-                                    mint: mint,
-                                    tk: tokenAccount.address,
-                                    vault: vaultDataPda,
-                                    signer: thatPubkey,
-                                    token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
-                                })
-                                .instruction();
-                            let transaction = new Transaction().add(txIntru1);
-                            if (input !== null || input !== "") {
-                                const result = await handleButtonUserMessageTargetLinkCall(targetKey);
-                                if (result instanceof TransactionInstruction) {
-                                    let intru2: TransactionInstruction | null = null;
-                                    intru2 = result;
-                                    transaction.add(intru2);
-                                }
-                            }
-                            let txHash = await wallet.sendTransaction(transaction, connection);
-                            await connection.confirmTransaction(txHash);
-                            alert(`You has been summoned your asset for this target successful`);
-                            finalTransaction(txHash, true);
-                        }
-                    } catch (e) {
-                        console.log(`${e}`);
-                    };
                 }
             }
             if (programTarget) {
@@ -2531,7 +3010,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                             mint
                         );
                         const transaction = new Transaction().add(ataInstruction);
-                        if (input !== null || input !== "") {
+                        if (input !== "") {
                             const result = await handleButtonUserMessageTargetLinkCall(targetKey);
                             if (result instanceof TransactionInstruction) {
                                 let intru2: TransactionInstruction | null = null;
@@ -2598,7 +3077,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                             mint
                         );
                         const transaction = new Transaction().add(ataInstruction);
-                        if (input !== null || input !== "") {
+                        if (input !== "") {
                             const result = await handleButtonUserMessageTargetLinkCall(targetKey);
                             if (result instanceof TransactionInstruction) {
                                 let intru2: TransactionInstruction | null = null;
@@ -2654,7 +3133,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 if (intru1 && intru2) {
                     const connection = new Connection(endpoint, 'finalized');
                     const transaction = new Transaction().add(intru1).add(intru2);
-                    if (input != null) {
+                    if (input !== "") {
                         const result = await handleButtonUserMessageLinkCall();
                         if (result instanceof TransactionInstruction) {
                             let intru3: TransactionInstruction | null = null;
@@ -2672,6 +3151,53 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 }
             })
     }, [endpoint, finalTransaction, handleButtonBuySolLC, handleButtonSimulateBuy, handleButtonTributeAssetLinkCall, handleButtonUserMessageLinkCall, input, wallet]);
+    const handleButtonBuySolLinkCallTarget = useCallback(async () => {
+        let intru1: TransactionInstruction | null = null;
+        let intru2: TransactionInstruction | null = null;
+        let intru3: TransactionInstruction | null = null;
+        await handleButtonSimulateBuy()
+            .then(async (amountLinkCall) => {
+                if (amountLinkCall) {
+                    const result = await handleButtonTributeAssetLinkCall(amountLinkCall);
+                    if (result instanceof TransactionInstruction) {
+                        intru1 = result;
+                    }
+                }
+            })
+            .then(async () => {
+                const result = await handleButtonBuySolLC();
+                if (result instanceof TransactionInstruction) {
+                    intru2 = result;
+                }
+            })
+            .then(async () => {
+                const result = await handleButtonTransferSolLinkCall(Number(input2).valueOf());
+                if (result instanceof TransactionInstruction) {
+                    intru3 = result;
+                }
+            })
+            .finally(async () => {
+                if (intru1 && intru2 && intru3) {
+                    const connection = new Connection(endpoint, 'finalized');
+                    const transaction = new Transaction().add(intru1).add(intru2).add(intru3);
+                    if (input !== "") {
+                        const result = await handleButtonUserMessageLinkCall();
+                        if (result instanceof TransactionInstruction) {
+                            let intru4: TransactionInstruction | null = null;
+                            intru4 = result;
+                            transaction.add(intru4);
+                        }
+                    }
+                    alert(`You buying your Dev Sol by VND to the vault successful`);
+                    const txHash = await wallet.sendTransaction(transaction, connection);
+                    await connection.confirmTransaction(txHash);
+                    alert(`You has been buyed your Dev Sol by VND from the vault successful`);
+                    finalTransaction(txHash, true);
+                } else {
+                    console.error('Error: TransactionInstructions not found');
+                }
+            })
+    }, [endpoint, finalTransaction, handleButtonBuySolLC, handleButtonSimulateBuy, handleButtonTransferSolLinkCall, handleButtonTributeAssetLinkCall, handleButtonUserMessageLinkCall, input, input2, wallet]);
     const handleButtonSellSolLinkCall = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -2694,7 +3220,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 if (intru1 && intru2) {
                     const connection = new Connection(endpoint, 'finalized');
                     const transaction = new Transaction().add(intru1).add(intru2);
-                    if (input != null) {
+                    if (input !== "") {
                         const result = await handleButtonUserMessageLinkCall();
                         if (result instanceof TransactionInstruction) {
                             let intru3: TransactionInstruction | null = null;
@@ -2712,6 +3238,54 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 }
             })
     }, [endpoint, finalTransaction, handleButtonSellSolLC, handleButtonSimulateSell, handleButtonSummonAssetLinkCall, handleButtonUserMessageLinkCall, input, wallet]);
+    const handleButtonSellSolLinkCallTarget = useCallback(async () => {
+        let intru1: TransactionInstruction | null = null;
+        let intru2: TransactionInstruction | null = null;
+        let intru3: TransactionInstruction | null = null;
+        await handleButtonSimulateSell()
+            .then(async (amountLinkCall) => {
+                if (amountLinkCall) {
+                    const result = await handleButtonSummonAssetLinkCall(amountLinkCall);
+                    if (result instanceof TransactionInstruction) {
+                        intru2 = result;
+                    }
+                }
+                return amountLinkCall;
+            })
+            .then(async (amountLinkCall) => {
+                const result = await handleButtonTransferAssetLinkCall(Number(amountLinkCall).valueOf() * LAMPORTS_PER_SOL);
+                if (result instanceof TransactionInstruction) {
+                    intru3 = result;
+                }
+            })
+            .then(async () => {
+                const result = await handleButtonSellSolLC();
+                if (result instanceof TransactionInstruction) {
+                    intru1 = result;
+                }
+            })
+            .finally(async () => {
+                if (intru1 && intru2 && intru3) {
+                    const connection = new Connection(endpoint, 'finalized');
+                    const transaction = new Transaction().add(intru1).add(intru2).add(intru3);
+                    if (input !== "") {
+                        const result = await handleButtonUserMessageLinkCall();
+                        if (result instanceof TransactionInstruction) {
+                            let intru4: TransactionInstruction | null = null;
+                            intru4 = result;
+                            transaction.add(intru4);
+                        }
+                    }
+                    alert(`You selling your Dev Sol for VND to the vault successful`);
+                    const txHash = await wallet.sendTransaction(transaction, connection);
+                    await connection.confirmTransaction(txHash);
+                    alert(`You has been selled your Dev Sol for VND to the vault successful`);
+                    finalTransaction(txHash, true);
+                } else {
+                    console.error('Error: TransactionInstructions not found');
+                }
+            })
+    }, [endpoint, finalTransaction, handleButtonSellSolLC, handleButtonSimulateSell, handleButtonSummonAssetLinkCall, handleButtonTransferAssetLinkCall, handleButtonUserMessageLinkCall, input, wallet]);
     const handleButtonMintLPLinkCall = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -2734,7 +3308,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 if (intru1 && intru2) {
                     const connection = new Connection(endpoint, 'finalized');
                     const transaction = new Transaction().add(intru1).add(intru2);
-                    if (input != null) {
+                    if (input !== "") {
                         const result = await handleButtonUserMessageLinkCall();
                         if (result instanceof TransactionInstruction) {
                             let intru3: TransactionInstruction | null = null;
@@ -2752,7 +3326,53 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 }
             })
     }, [endpoint, finalTransaction, handleButtonSimulateMintLP, handleButtonSummonLPLC, handleButtonTributeAssetLinkCall, handleButtonUserMessageLinkCall, input, wallet]);
-
+    const handleButtonMintLPLinkCallTarget = useCallback(async () => {
+        let intru1: TransactionInstruction | null = null;
+        let intru2: TransactionInstruction | null = null;
+        let intru3: TransactionInstruction | null = null;
+        await handleButtonSimulateMintLP()
+            .then(async (amountLinkCall) => {
+                if (amountLinkCall) {
+                    const result = await handleButtonTributeAssetLinkCall(amountLinkCall);
+                    if (result instanceof TransactionInstruction) {
+                        intru1 = result;
+                    }
+                }
+            })
+            .then(async () => {
+                const result = await handleButtonSummonLPLC();
+                if (result instanceof TransactionInstruction) {
+                    intru2 = result;
+                }
+            })
+            .then(async () => {
+                const result = await handleButtonTransferLPLinkCall(Number(input2).valueOf());
+                if (result instanceof TransactionInstruction) {
+                    intru3 = result;
+                }
+            })
+            .finally(async () => {
+                if (intru1 && intru2 && intru3) {
+                    const connection = new Connection(endpoint, 'finalized');
+                    const transaction = new Transaction().add(intru1).add(intru2).add(intru3);
+                    if (input !== "") {
+                        const result = await handleButtonUserMessageLinkCall();
+                        if (result instanceof TransactionInstruction) {
+                            let intru4: TransactionInstruction | null = null;
+                            intru4 = result;
+                            transaction.add(intru4);
+                        }
+                    }
+                    alert(`You minting your LP by VND from the vault successful`);
+                    const txHash = await wallet.sendTransaction(transaction, connection);
+                    await connection.confirmTransaction(txHash);
+                    alert(`You has been minted your LP by VND from the vault successful`);
+                    finalTransaction(txHash, true);
+                } else {
+                    console.error('Error: TransactionInstructions not found');
+                }
+            })
+    }, [endpoint, finalTransaction, handleButtonSimulateMintLP, handleButtonSummonLPLC, handleButtonTransferLPLinkCall, handleButtonTributeAssetLinkCall, handleButtonUserMessageLinkCall, input, input2, wallet]);
     const handleButtonBurnLPLinkCall = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -2775,7 +3395,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 if (intru1 && intru2) {
                     const connection = new Connection(endpoint, 'finalized');
                     const transaction = new Transaction().add(intru1).add(intru2);
-                    if (input != null) {
+                    if (input !== "") {
                         const result = await handleButtonUserMessageLinkCall();
                         if (result instanceof TransactionInstruction) {
                             let intru3: TransactionInstruction | null = null;
@@ -2792,26 +3412,75 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     console.error('Error: TransactionInstructions not found');
                 }
             })
-        await handleButtonTributeLP()
+    }, [endpoint, finalTransaction, handleButtonSimulateBurnLP, handleButtonSummonAssetLinkCall, handleButtonTributeLPLC, handleButtonUserMessageLinkCall, input, wallet]);
+    const handleButtonBurnLPLinkCallTarget = useCallback(async () => {
+        let intru1: TransactionInstruction | null = null;
+        let intru2: TransactionInstruction | null = null;
+        let intru3: TransactionInstruction | null = null;
+        let intru4: TransactionInstruction | null = null;
+        await handleButtonSimulateBurnLP()
             .then(async (amountLinkCall) => {
                 if (amountLinkCall) {
-                    await handleButtonSummonAssetLinkCall(amountLinkCall);
+                    const result = await handleButtonSummonAssetLinkCall(amountLinkCall);
+                    if (result instanceof TransactionInstruction) {
+                        intru2 = result;
+                    }
+                }
+                return amountLinkCall;
+            })
+            .then(async (amountLinkCall) => {
+                const result = await handleButtonTransferAssetLinkCall(Number(amountLinkCall).valueOf() * LAMPORTS_PER_SOL);
+                if (result instanceof TransactionInstruction) {
+                    intru3 = result;
                 }
             })
-    }, [endpoint, finalTransaction, handleButtonSimulateBurnLP, handleButtonSummonAssetLinkCall, handleButtonTributeLP, handleButtonTributeLPLC, handleButtonUserMessageLinkCall, input, wallet]);
+            .then(async () => {
+                const result = await handleButtonTransferSolLinkCall(Number(await handleButtonSimulateBurnLPPlus()).valueOf());
+                if (result instanceof TransactionInstruction) {
+                    intru4 = result;
+                }
+            })
+            .then(async () => {
+                const result = await handleButtonTributeLPLC();
+                if (result instanceof TransactionInstruction) {
+                    intru1 = result;
+                }
+            })
+            .finally(async () => {
+                if (intru1 && intru2 && intru3 && intru4) {
+                    const connection = new Connection(endpoint, 'finalized');
+                    const transaction = new Transaction().add(intru1).add(intru2).add(intru3).add(intru4);
+                    if (input !== "") {
+                        const result = await handleButtonUserMessageLinkCall();
+                        if (result instanceof TransactionInstruction) {
+                            let intru5: TransactionInstruction | null = null;
+                            intru5 = result;
+                            transaction.add(intru5);
+                        }
+                    }
+                    alert(`You burning your LP for VND from the vault successful`);
+                    const txHash = await wallet.sendTransaction(transaction, connection);
+                    await connection.confirmTransaction(txHash);
+                    alert(`You has been burned your LP for VND from the vault successful`);
+                    finalTransaction(txHash, false);
+                } else {
+                    console.error('Error: TransactionInstructions not found');
+                }
+            })
+    }, [endpoint, finalTransaction, handleButtonSimulateBurnLP, handleButtonSimulateBurnLPPlus, handleButtonSummonAssetLinkCall, handleButtonTransferAssetLinkCall, handleButtonTransferSolLinkCall, handleButtonTributeLPLC, handleButtonUserMessageLinkCall, input, wallet]);
     return (
         <>
             {<WalletMultiButton />}
             <div>
-                <button onClick={handleButtonClick}>Watch Target</button>
-                <button onClick={handleButtonLockTarget}>Lock Target</button>
+                <button onClick={handleButtonClick}>Watch Tar</button>
+                <button onClick={handleButtonLockTarget}>Lock Tar</button>
                 <input type="text" value={input} onChange={handleInputChange} size={50} />
                 <button onClick={fetchBalance}>Watch Asset</button>
-                <button onClick={handleButtonTransferAsset}>Transfer Target</button>
+                <button onClick={handleButtonTransferAsset}>Transfer Tar</button>
                 <button onClick={handleButtonOpenAssetAcc}>Open Asset Acc</button>
                 <button onClick={handleButtonCloseAssetAcc}>Close Asset Acc</button>
                 <button onClick={handleButtonOpenTokenAcc}>Open SFC Acc</button>
-                <a href={balance7?.toString()} target="_blank" rel="noopener noreferrer">
+                <a href={solanaExplorer?.toString()} target="_blank" rel="noopener noreferrer">
                     <button>
                         Solana Explorer
                     </button>
@@ -2826,23 +3495,27 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 <button onClick={handleButtonTributeLP}>Burn LP Token</button>
                 <button onClick={handleButtonBuySolLinkCall}>Buy Sol by VND</button>
                 <button onClick={handleButtonSellSolLinkCall}>Sell Sol for VND</button>
+                <button onClick={handleButtonBuySolTarget}>Buy Sol Tar</button>
+                <button onClick={handleButtonSellSolTarget}>Sell Sol Tar</button>
+                <button onClick={handleButtonBuySolLinkCallTarget}>Buy Sol-VND Tar</button>
+                <button onClick={handleButtonSellSolLinkCallTarget}>Sell Sol-VND Tar</button>
             </div>
             <div>
-                <button onClick={handleButtonDepositAsset}>Deposit Target</button>
-                <button onClick={handleButtonWithdrawAsset}>Withdraw Target</button>
+                <button onClick={handleButtonDepositAsset}>Deposit Tar</button>
+                <button onClick={handleButtonWithdrawAsset}>Withdraw Tar</button>
                 <input type="text" value={input2} onChange={handleInputChange2} size={50} />
                 <button onClick={handleButtonTributeAsset}>Mint SFC - VND</button>
                 <button onClick={handleButtonSummonAsset}>Burn SFC - VND</button>
-                <button onClick={handleButtonTributeTarget}>Mint SFC Target</button>
-                <button onClick={handleButtonSummonTarget}>Burn SFC Target</button>
-                <button onClick={handleButtonOpenTokenTarget}>Open SFC Target</button>
-                <a href={balance8?.toString()} target="_blank" rel="noopener noreferrer">
+                <button onClick={handleButtonTributeTarget}>Mint SFC Tar</button>
+                <button onClick={handleButtonSummonTargetNew}>Burn SFC Tar</button>
+                <button onClick={handleButtonOpenTokenTarget}>Open SFC Tar</button>
+                <a href={solScan?.toString()} target="_blank" rel="noopener noreferrer">
                     <button>
                         Solscan
                     </button>
                 </a>
-                <button onClick={handleButtonChangeNameTarget}>Name Target</button>
-                <button onClick={handleButtonUserMessageTarget}>Message Target</button>
+                <button onClick={handleButtonChangeNameTarget}>Name Tar</button>
+                <button onClick={handleButtonUserMessageTarget}>Message Tar</button>
                 {/*<button onClick={handleButtonTributeStable}>Tribute Stable</button>
                 <button onClick={handleButtonSummonStable}>Summon Stable</button>
                 <button onClick={handleButtonSimulateBuy}>Simulate Buy Sol</button>
@@ -2850,28 +3523,32 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 <button onClick={handleButtonSimulateMintLP}>Simulate Mint LP</button>
                 <button onClick={handleButtonSimulateBurnLP}>Simulate Burn LP</button>*/}
                 <button onClick={handleButtonOpenLPAcc}>Open LP Acc</button>
-                <button onClick={handleButtonOpenLPTarget}>Open LP Target</button>
+                <button onClick={handleButtonOpenLPTarget}>Open LP Tar</button>
                 <button onClick={handleButtonTransferSFC}>Transfer SFC - VND</button>
                 <button onClick={handleButtonTransferLP}>Transfer LPSFC</button>
                 <button onClick={handleButtonMintLPLinkCall}>Mint LP by VND</button>
                 <button onClick={handleButtonBurnLPLinkCall}>Burn LP for VND</button>
+                <button onClick={handleButtonSummonLPTarget}>Mint LP Tar</button>
+                <button onClick={handleButtonTributeLPTarget}>Burn LP Tar</button>
+                <button onClick={handleButtonMintLPLinkCallTarget}>Mint LP-VND Tar</button>
+                <button onClick={handleButtonBurnLPLinkCallTarget}>Burn LP-VND Tar</button>
             </div>
             {wallet.connected && (
                 <div className="wallet-info">
-                    <div>Wallet Address: {balance0}</div>
-                    <div>Account Name: {balance9}</div>
-                    <div>Target Address: {balance6}</div>
-                    <div>Wallet Balance: {balance1} Dev SOL</div>
-                    <div>Wallet LP Token: {balance14} LPSFC</div>
-                    <div>Wallet Stable Coin: {balance3} SFC - VND</div>
-                    <div>Wallet Asset: {balance5} VND</div>
-                    <div>Stable Coin Supply: {balance2} SFC - VND</div>
-                    <div>Total Asset Base: {balance4} VND</div>
-                    <div>LP Token Supply: {balance15} LPSFC</div>
-                    <div>Pool Gas Token: {balance10} Dev SOL</div>
-                    <div>Pool Stable Coin: {balance11} SFC - VND</div>
-                    <div>Pool Ratio Dev Sol 1 : {balance12} SFC - VND</div>
-                    <div>Pool K value: {balance13}</div>
+                    <div>Wallet Address: {walletAddress}</div>
+                    <div>Account Name: {accountName}</div>
+                    <div>Target Address: {targetAddress}</div>
+                    <div>Wallet Balance: {walletBalance} Dev SOL</div>
+                    <div>Wallet LP Token: {walletLPToken} LPSFC</div>
+                    <div>Wallet Stable Coin: {walletStableCoin} SFC - VND</div>
+                    <div>Wallet Asset: {walletAsset} VND</div>
+                    <div>Stable Coin Supply: {stableCoinSupply} SFC - VND</div>
+                    <div>Total Asset Base: {totalAssetBase} VND</div>
+                    <div>LP Token Supply: {lpTokenSupply} LPSFC</div>
+                    <div>Pool Gas Token: {poolGasToken} Dev SOL</div>
+                    <div>Pool Stable Coin: {poolStableCoin} SFC - VND</div>
+                    <div>Pool Ratio Dev Sol 1 : {poolRatio} SFC - VND</div>
+                    <div>Pool K value: {poolKValue}</div>
                     <div>
                         <img src="https://i.ibb.co/vxRnDKx/SFC-VND.jpg" alt="SFC - VND Logo" title='SFC - VND Logo' width="100" height="100" />
                         <img src="https://i.ibb.co/wMRXC4M/LP-Token-Logo.webp" alt="LPSFC Logo" title='LPSFC Logo' width="100" height="100" />
