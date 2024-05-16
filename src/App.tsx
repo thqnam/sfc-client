@@ -35,23 +35,32 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
     const [walletLPToken, setwalletLPToken] = useState<number | null>(null);
     const [lpTokenSupply, setlpTokenSupply] = useState<number | null>(null);
     const [programTarget, setProgramTarget] = useState<Program | null>(null);
-    const fetchBalance = useCallback(async () => {
-        if (!wallet.connected) {
-            setVisible(true);
-            return;
-        }
+    const fetchWalletAddress = useCallback(async () => {
         if (!wallet.publicKey) {
             throw new WalletNotConnectedError();
         }
         const walletAddress = wallet.publicKey.toBase58();
         setwalletAddress(walletAddress);
-        const connection = new Connection(endpoint, 'finalized');
+    }, [wallet.publicKey]);
+    const fetchWalletBalance = useCallback(async (connection: Connection) => {
+        if (!wallet.publicKey) {
+            throw new WalletNotConnectedError();
+        }
         const walletBalance = await connection.getBalance(new PublicKey(wallet.publicKey));
         setwalletBalance(walletBalance / 1e9);
+    }, [wallet.publicKey]);
+    const fetchStableCoinSupply = useCallback(async (connection: Connection) => {
         const stableCoinSupply = await connection.getTokenSupply(new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"));
         setstableCoinSupply(Number(stableCoinSupply.value.amount).valueOf() / 1e9);
+    }, []);
+    const fetchLPTpkenSupply = useCallback(async (connection: Connection) => {
         const lpTokenSupply = await connection.getTokenSupply(new PublicKey("8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He"));
         setlpTokenSupply(Number(lpTokenSupply.value.amount).valueOf() / 1e9);
+    }, []);
+    const fetchWalletStableCoin = useCallback(async (connection: Connection) => {
+        if (!wallet.publicKey) {
+            throw new WalletNotConnectedError();
+        }
         const tokenFilt: TokenAccountsFilter = {
             mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
             programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
@@ -66,12 +75,17 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             setwalletStableCoin(walletStableCoin);
             alert(`Can't find token account`);
         }
+    }, [wallet.publicKey]);
+    const fetchWalletLPToken = useCallback(async (connection: Connection) => {
+        if (!wallet.publicKey) {
+            throw new WalletNotConnectedError();
+        }
         const tokenLPFilt: TokenAccountsFilter = {
             mint: new PublicKey("8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He"),
             programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
         };
         const tokenLPAcc = await connection.getTokenAccountsByOwner(wallet.publicKey, tokenLPFilt);
-        if (tokenAcc.value.length > 0) {
+        if (tokenLPAcc.value.length > 0) {
             const publicKeyToken = tokenLPAcc.value[0].pubkey;
             const walletLPToken = await connection.getTokenAccountBalance(publicKeyToken);
             setwalletLPToken(Number(walletLPToken.value.amount).valueOf() / 1e9);
@@ -80,6 +94,8 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             setwalletLPToken(walletLPToken);
             alert(`Can't find LP token account`);
         }
+    }, [wallet.publicKey]);
+    const fetchVaultInfo = useCallback(async () => {
         const [pda] = PublicKey.findProgramAddressSync(
             [Buffer.from("vault")],
             new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
@@ -105,6 +121,8 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     console.error('Error fetching account info:', error);
                 });
         }
+    }, [programTarget]);
+    const fetchTargetInfo = useCallback(async () => {
         let thatPubkey: any;
         if (publicKey) {
             thatPubkey = publicKey;
@@ -137,6 +155,14 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     console.error('Error fetching account target:', error);
                 });
         }
+    }, [programTarget, publicKey]);
+    const fetchMineInfo = useCallback(async () => {
+        let thatPubkey: any;
+        if (publicKey) {
+            thatPubkey = publicKey;
+        } else {
+            console.error('You not yet choose wallet');
+        }
         const [pda2] = PublicKey.findProgramAddressSync(
             [Buffer.from("client", "utf8"), thatPubkey.toBuffer()],
             new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
@@ -168,8 +194,18 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     alert(`Can't find account name`);
                 });
         }
+    }, [programTarget, publicKey]);
+    const fetchAMMInfo = useCallback(async (connection: Connection) => {
+        const [pda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("vault")],
+            new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+        );
         const poolGasToken = await connection.getBalance(pda);
         setpoolGasToken(poolGasToken / 1e9);
+        const tokenFilt: TokenAccountsFilter = {
+            mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
+            programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+        };
         const tokenAcc2 = await connection.getTokenAccountsByOwner(pda, tokenFilt);
         if (tokenAcc2.value.length > 0) {
             const publicKeyToken = tokenAcc2.value[0].pubkey;
@@ -182,15 +218,48 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             setpoolStableCoin(poolStableCoin);
             alert(`Can't find token account`);
         }
-    }, [wallet, endpoint, programTarget, publicKey, setVisible]);
+    }, []);
+    const fetchBalance = useCallback(async () => {
+        setTimeout(async () => {
+            await fetchWalletAddress();
+        }, 1000);
+        const connection = new Connection(endpoint, 'finalized');
+        setTimeout(async () => {
+            await fetchWalletBalance(connection);
+        }, 1000);
+        setTimeout(async () => {
+            await fetchStableCoinSupply(connection);
+        }, 1000);
+        setTimeout(async () => {
+            await fetchLPTpkenSupply(connection);
+        }, 1000);
+        setTimeout(async () => {
+            await fetchWalletStableCoin(connection);
+        }, 1000);
+        setTimeout(async () => {
+            await fetchWalletLPToken(connection);
+        }, 1000);
+        setTimeout(async () => {
+            await fetchVaultInfo();
+        }, 1000);
+        setTimeout(async () => {
+            await fetchTargetInfo();
+        }, 1000);
+        setTimeout(async () => {
+            await fetchMineInfo();
+        }, 1000);
+        setTimeout(async () => {
+            await fetchAMMInfo(connection);
+        }, 1000);
+    }, [fetchWalletAddress, endpoint, fetchWalletBalance, fetchStableCoinSupply, fetchLPTpkenSupply, fetchWalletStableCoin, fetchWalletLPToken, fetchVaultInfo, fetchTargetInfo, fetchMineInfo, fetchAMMInfo]);
     useEffect(() => {
         if (programTarget instanceof Program) {
             setVisible(true);
         } else {
             const connection = new Connection(endpoint, 'finalized');
             let thatWallet: any;
-            if (wallet && wallet.wallet) {
-                thatWallet = wallet
+            if (wallet) {
+                thatWallet = wallet.wallet ? wallet : undefined;
             } else {
                 console.error('You not yet choose wallet');
             }
@@ -246,36 +315,42 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     const walletAddress = targetKey.toBase58();
                     setwalletAddress(walletAddress);
                     const connection = new Connection(endpoint, 'finalized');
-                    const walletBalance = await connection.getBalance(targetKey);
-                    setwalletBalance(walletBalance / 1e9);
-                    const tokenFilt: TokenAccountsFilter = {
-                        mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
-                        programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-                    };
-                    const tokenAcc = await connection.getTokenAccountsByOwner(targetKey, tokenFilt);
-                    if (tokenAcc.value.length > 0) {
-                        const publicKeyToken = tokenAcc.value[0].pubkey;
-                        const walletStableCoin = await connection.getTokenAccountBalance(publicKeyToken);
-                        setwalletStableCoin(Number(walletStableCoin.value.amount).valueOf() / 1e9);
-                    } else {
-                        const walletStableCoin = 0;
-                        setwalletStableCoin(walletStableCoin);
-                        alert(`Can't find token account`);
-                    }
-                    const tokenLPFilt: TokenAccountsFilter = {
-                        mint: new PublicKey("8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He"),
-                        programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-                    };
-                    const tokenLPAcc = await connection.getTokenAccountsByOwner(targetKey, tokenLPFilt);
-                    if (tokenAcc.value.length > 0) {
-                        const publicKeyToken = tokenLPAcc.value[0].pubkey;
-                        const walletLPToken = await connection.getTokenAccountBalance(publicKeyToken);
-                        setwalletLPToken(Number(walletLPToken.value.amount).valueOf() / 1e9);
-                    } else {
-                        const walletLPToken = 0;
-                        setwalletLPToken(walletLPToken);
-                        alert(`Can't find LP token account`);
-                    }
+                    setTimeout(async () => {
+                        const walletBalance = await connection.getBalance(targetKey);
+                        setwalletBalance(walletBalance / 1e9);
+                    }, 1000);
+                    setTimeout(async () => {
+                        const tokenFilt: TokenAccountsFilter = {
+                            mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
+                            programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+                        };
+                        const tokenAcc = await connection.getTokenAccountsByOwner(targetKey, tokenFilt);
+                        if (tokenAcc.value.length > 0) {
+                            const publicKeyToken = tokenAcc.value[0].pubkey;
+                            const walletStableCoin = await connection.getTokenAccountBalance(publicKeyToken);
+                            setwalletStableCoin(Number(walletStableCoin.value.amount).valueOf() / 1e9);
+                        } else {
+                            const walletStableCoin = 0;
+                            setwalletStableCoin(walletStableCoin);
+                            alert(`Can't find token account`);
+                        }
+                    }, 1000);
+                    setTimeout(async () => {
+                        const tokenLPFilt: TokenAccountsFilter = {
+                            mint: new PublicKey("8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He"),
+                            programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+                        };
+                        const tokenLPAcc = await connection.getTokenAccountsByOwner(targetKey, tokenLPFilt);
+                        if (tokenLPAcc.value.length > 0) {
+                            const publicKeyToken = tokenLPAcc.value[0].pubkey;
+                            const walletLPToken = await connection.getTokenAccountBalance(publicKeyToken);
+                            setwalletLPToken(Number(walletLPToken.value.amount).valueOf() / 1e9);
+                        } else {
+                            const walletLPToken = 0;
+                            setwalletLPToken(walletLPToken);
+                            alert(`Can't find LP token account`);
+                        }
+                    }, 1000);
                     const [pda2] = PublicKey.findProgramAddressSync(
                         [Buffer.from("client", "utf8"), targetKey.toBuffer()],
                         new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
@@ -350,18 +425,20 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             alert(error.message);
         }
     }, [publicKey, programTarget, endpoint]);
-    const finalTransaction = useCallback(async (txHash: string, isTarget: boolean) => {
+    const finalTransaction = useCallback(async (isTarget: boolean, transaction: Transaction, connection: Connection) => {
+        let txHash = await wallet.sendTransaction(transaction, connection);
+        await connection.confirmTransaction(txHash);
         const solanaExplorer = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
         const solScan = `https://solscan.io/tx/${txHash}?cluster=devnet`;
         setsolanaExplorer(solanaExplorer);
         setsolScan(solScan);
         if (isTarget) {
-            await handleButtonClick();
-        } else {
             await fetchBalance();
+        } else {
+            await handleButtonClick();
         }
 
-    }, [fetchBalance, handleButtonClick]);
+    }, [fetchBalance, handleButtonClick, wallet]);
     const handleButtonUserMessageLinkCall = useCallback(async () => {
         let txIntru: TransactionInstruction;
         try {
@@ -426,6 +503,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 }
             } catch (e) {
                 console.log(`${e}`);
+                alert(e);
             }
         } catch (error) {
             alert(error.message);
@@ -477,6 +555,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                             }
                         } catch (e) {
                             console.log(`${e}`);
+                            alert(e);
                         }
                     })
                     .catch(error => {
@@ -525,6 +604,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                             }
                         } catch (e) {
                             console.log(`${e}`);
+                            alert(e);
                         }
                     })
                     .catch(error => {
@@ -581,6 +661,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                             }
                         } catch (e) {
                             console.log(`${e}`);
+                            alert(e);
                         }
                     })
                     .catch(error => {
@@ -637,6 +718,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                             }
                         } catch (e) {
                             console.log(`${e}`);
+                            alert(e);
                         }
                     })
                     .catch(error => {
@@ -916,17 +998,16 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru2);
                     }
                 }
-                let txHash = await wallet.sendTransaction(transaction, connection);
-                await connection.confirmTransaction(txHash);
+                await finalTransaction(true, transaction, connection);
                 alert(`You has been provided your liquidity to the vault successful`);
-                finalTransaction(txHash, false);
+
             }
             return amountLinkCall;
         } catch (error) {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateMintLP, publicKey, endpoint, input2, poolRatio, programTarget, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [handleButtonSimulateMintLP, publicKey, endpoint, input2, poolRatio, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonSummonLPTarget = useCallback(async () => {
         try {
             const amountLinkCall = await handleButtonSimulateMintLP();
@@ -991,17 +1072,15 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru3);
                     }
                 }
-                let txHash = await wallet.sendTransaction(transaction, connection);
-                await connection.confirmTransaction(txHash);
+                await finalTransaction(true, transaction, connection);
                 alert(`You has been provided your liquidity to the vault successful`);
-                finalTransaction(txHash, false);
             }
             return amountLinkCall;
         } catch (error) {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateMintLP, publicKey, endpoint, input2, poolRatio, programTarget, handleButtonTransferLPLinkCall, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [handleButtonSimulateMintLP, publicKey, endpoint, input2, poolRatio, programTarget, handleButtonTransferLPLinkCall, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonSummonLPLC = useCallback(async () => {
         try {
             let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
@@ -1101,17 +1180,15 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru2);
                     }
                 }
-                let txHash = await wallet.sendTransaction(transaction, connection);
-                await connection.confirmTransaction(txHash);
+                await finalTransaction(true, transaction, connection);
                 alert(`You has been buyed your Dev Sol from the vault successful`);
-                finalTransaction(txHash, false);
             }
             return amountLinkCall;
         } catch (error) {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateBuy, publicKey, endpoint, input2, programTarget, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [handleButtonSimulateBuy, publicKey, endpoint, input2, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonBuySolTarget = useCallback(async () => {
         try {
             const amountLinkCall = await handleButtonSimulateBuy();
@@ -1163,17 +1240,15 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru3);
                     }
                 }
-                let txHash = await wallet.sendTransaction(transaction, connection);
-                await connection.confirmTransaction(txHash);
+                await finalTransaction(true, transaction, connection);
                 alert(`You has been buyed your Dev Sol from the vault successful`);
-                finalTransaction(txHash, false);
             }
             return amountLinkCall;
         } catch (error) {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateBuy, publicKey, endpoint, input2, programTarget, handleButtonTransferSolLinkCall, input, wallet, finalTransaction, handleButtonUserMessageTargetLinkCall, targetAddress]);
+    }, [handleButtonSimulateBuy, publicKey, endpoint, input2, programTarget, handleButtonTransferSolLinkCall, input, finalTransaction, handleButtonUserMessageTargetLinkCall, targetAddress]);
     const handleButtonBuySolLC = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -1274,17 +1349,15 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru2);
                     }
                 }
-                let txHash = await wallet.sendTransaction(transaction, connection);
-                await connection.confirmTransaction(txHash);
+                await finalTransaction(true, transaction, connection);
                 alert(`You has been withdrawed your Sol from the vault successful`);
-                finalTransaction(txHash, false);
             }
             return amountLinkCall;
         } catch (error) {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateBurnLP, publicKey, endpoint, input2, poolRatio, programTarget, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [handleButtonSimulateBurnLP, publicKey, endpoint, input2, poolRatio, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonTributeLPTarget = useCallback(async () => {
         try {
             const amountLinkCall = await handleButtonSimulateBurnLP();
@@ -1336,11 +1409,11 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     .instruction();
                 let transaction = new Transaction().add(txIntru1);
                 const result1 = await handleButtonTransferSFCLinkCall(Number(amountLinkCall).valueOf());
-                    if (result1 instanceof TransactionInstruction) {
-                        let intru2: TransactionInstruction | null = null;
-                        intru2 = result1;
-                        transaction.add(intru2);
-                    }
+                if (result1 instanceof TransactionInstruction) {
+                    let intru2: TransactionInstruction | null = null;
+                    intru2 = result1;
+                    transaction.add(intru2);
+                }
                 const result2 = await handleButtonTransferSolLinkCall(Number(await handleButtonSimulateBurnLPPlus()).valueOf());
                 if (result2 instanceof TransactionInstruction) {
                     let intru3: TransactionInstruction | null = null;
@@ -1355,17 +1428,15 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru4);
                     }
                 }
-                let txHash = await wallet.sendTransaction(transaction, connection);
-                await connection.confirmTransaction(txHash);
+                await finalTransaction(true, transaction, connection);
                 alert(`You has been withdrawed your Sol from the vault successful`);
-                finalTransaction(txHash, false);
             }
             return amountLinkCall;
         } catch (error) {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateBurnLP, publicKey, endpoint, input2, poolRatio, programTarget, handleButtonTransferSFCLinkCall, handleButtonTransferSolLinkCall, handleButtonSimulateBurnLPPlus, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [handleButtonSimulateBurnLP, publicKey, endpoint, input2, poolRatio, programTarget, handleButtonTransferSFCLinkCall, handleButtonTransferSolLinkCall, handleButtonSimulateBurnLPPlus, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonTributeLPLC = useCallback(async () => {
         try {
             let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
@@ -1466,17 +1537,15 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru2);
                     }
                 }
-                let txHash = await wallet.sendTransaction(transaction, connection);
-                await connection.confirmTransaction(txHash);
+                await finalTransaction(true, transaction, connection);
                 alert(`You has been selled your Sol from the vault successful`);
-                finalTransaction(txHash, false);
             }
             return amountLinkCall;
         } catch (error) {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateSell, publicKey, endpoint, input2, programTarget, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [handleButtonSimulateSell, publicKey, endpoint, input2, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonSellSolTarget = useCallback(async () => {
         try {
             const amountLinkCall = await handleButtonSimulateSell();
@@ -1529,17 +1598,15 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru3);
                     }
                 }
-                let txHash = await wallet.sendTransaction(transaction, connection);
-                await connection.confirmTransaction(txHash);
+                await finalTransaction(true, transaction, connection);
                 alert(`You has been selled your Sol from the vault successful`);
-                finalTransaction(txHash, false);
             }
             return amountLinkCall;
         } catch (error) {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateSell, publicKey, endpoint, input2, programTarget, handleButtonTransferSFCLinkCall, input, wallet, finalTransaction, handleButtonUserMessageTargetLinkCall, targetAddress]);
+    }, [handleButtonSimulateSell, publicKey, endpoint, input2, programTarget, handleButtonTransferSFCLinkCall, input, finalTransaction, handleButtonUserMessageTargetLinkCall, targetAddress]);
     const handleButtonSellSolLC = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -1677,6 +1744,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
 
             } catch (e) {
                 console.log(`${e}`);
+                alert(e);
             }
         } catch (error) {
             console.error("Error fetching outer IDL: ", error);
@@ -1781,6 +1849,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
 
             } catch (e) {
                 console.log(`${e}`);
+                alert(e);
             }
         } catch (error) {
             console.error("Error fetching outer IDL: ", error);
@@ -1788,6 +1857,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         }
     }, [publicKey, endpoint, input2, fetchBalance]);*/
     const handleButtonUserMessageTarget = useCallback(async () => {
+        let txIntru: TransactionInstruction;
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -1820,7 +1890,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     try {
                         if (programTarget) {
                             alert(`You sending message to this target`);
-                            let txHash = await programTarget.methods
+                            txIntru = await programTarget.methods
                                 .userMessageTarget(input)
                                 .accounts({
                                     target: targetDataPda,
@@ -1828,13 +1898,14 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                                     toclient: toDataPda,
                                     signer: thatPubkey,
                                 })
-                                .rpc();
-                            await connection.confirmTransaction(txHash);
+                                .instruction();
+                            let transaction = new Transaction().add(txIntru);
+                            await finalTransaction(true, transaction, connection);
                             alert(`You has been sended message to this target successful`);
-                            finalTransaction(txHash, true);
                         }
                     } catch (e) {
                         console.log(`${e}`);
+                        alert(e);
                     }
                 }
             }
@@ -1853,6 +1924,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         }
     }, [publicKey, programTarget, endpoint, input, finalTransaction]);
     const handleButtonUserMessage = useCallback(async () => {
+        let txIntru: TransactionInstruction;
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -1867,23 +1939,24 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             const connection = new Connection(endpoint, 'finalized');
             if (programTarget) {
                 alert(`You sending message to everyone`);
-                let txHash = await programTarget.methods
+                txIntru = await programTarget.methods
                     .userMessage(input)
                     .accounts({
                         client: pda2,
                         signer: thatPubkey,
                         systemProgram: SystemProgram.programId,
                     })
-                    .rpc()
-                await connection.confirmTransaction(txHash);
+                    .instruction();
+                let transaction = new Transaction().add(txIntru);
+                await finalTransaction(true, transaction, connection);
                 alert(`You has been sended message to everyone successful`);
-                finalTransaction(txHash, false);
             }
         } catch (error) {
             alert(error.message);
         }
     }, [publicKey, endpoint, programTarget, input, finalTransaction]);
     const handleButtonChangeNameTarget = useCallback(async () => {
+        let txIntru: TransactionInstruction;
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -1912,20 +1985,21 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     try {
                         if (programTarget) {
                             alert(`You changing the name of this target`);
-                            let txHash = await programTarget.methods
+                            txIntru = await programTarget.methods
                                 .changeNameTarget(input)
                                 .accounts({
                                     target: targetDataPda,
                                     client: playerDataPda,
                                     signer: thatPubkey,
                                 })
-                                .rpc();
-                            await connection.confirmTransaction(txHash);
+                                .instruction();
+                            let transaction = new Transaction().add(txIntru);
+                            await finalTransaction(true, transaction, connection);
                             alert(`You has been changed the name of this target successful`);
-                            finalTransaction(txHash, true);
                         }
                     } catch (e) {
                         console.log(`${e}`);
+                        alert(e);
                     }
                 }
             }
@@ -1945,6 +2019,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         }
     }, [publicKey, programTarget, endpoint, input, finalTransaction]);
     const handleButtonChangeName = useCallback(async () => {
+        let txIntru: TransactionInstruction;
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -1959,17 +2034,17 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             const connection = new Connection(endpoint, 'finalized');
             if (programTarget) {
                 alert(`Your account name changing`);
-                let txHash = await programTarget.methods
+                txIntru = await programTarget.methods
                     .changeName(input)
                     .accounts({
                         client: pda2,
                         signer: thatPubkey,
                         systemProgram: SystemProgram.programId,
                     })
-                    .rpc()
-                await connection.confirmTransaction(txHash);
+                    .instruction();
+                let transaction = new Transaction().add(txIntru);
+                await finalTransaction(true, transaction, connection);
                 alert(`Your account name changed successful`);
-                finalTransaction(txHash, false);
             }
         } catch (error) {
             alert(error.message);
@@ -2007,15 +2082,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru2);
                     }
                 }
-                let txHash = await wallet.sendTransaction(transaction, connection);
-                await connection.confirmTransaction(txHash);
+                await finalTransaction(true, transaction, connection);
                 alert(`Your asset account opened successful`);
-                finalTransaction(txHash, false);
             }
         } catch (error) {
             alert(error.message);
         }
-    }, [publicKey, endpoint, programTarget, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [publicKey, endpoint, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonOpenTokenAcc = useCallback(async () => {
         try {
             let mintString = "4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ";
@@ -2049,10 +2122,8 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     }
                 }
                 alert(`Token account opening`);
-                const txHash = await wallet.sendTransaction(transaction, connection);
-                await connection.confirmTransaction(txHash);
+                await finalTransaction(true, transaction, connection);
                 alert(`Token account opened successful`);
-                finalTransaction(txHash, false);
             } else {
                 alert(`Token account already exists`);
             }
@@ -2060,7 +2131,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, endpoint, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [publicKey, endpoint, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonOpenLPAcc = useCallback(async () => {
         try {
             let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
@@ -2094,10 +2165,8 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     }
                 }
                 alert(`LP token account opening`);
-                const txHash = await wallet.sendTransaction(transaction, connection);
-                await connection.confirmTransaction(txHash);
+                await finalTransaction(true, transaction, connection);
                 alert(`LP token account opened successful`);
-                finalTransaction(txHash, false);
             } else {
                 alert(`LP token account already exists`);
             }
@@ -2105,7 +2174,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, endpoint, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [publicKey, endpoint, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonCloseAssetAcc = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -2137,15 +2206,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru2);
                     }
                 }
-                let txHash = await wallet.sendTransaction(transaction, connection);
-                await connection.confirmTransaction(txHash);
+                await finalTransaction(true, transaction, connection);
                 alert(`Your asset account closed successful`);
-                finalTransaction(txHash, false);
             }
         } catch (error) {
             alert(error.message);
         }
-    }, [publicKey, endpoint, programTarget, input, wallet, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [publicKey, endpoint, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonLockTarget = useCallback(async () => {
         try {
             let targetKeyString = input;
@@ -2172,15 +2239,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     })
                     .instruction();
                 let transaction = new Transaction().add(txIntru);
-                let txHash = await wallet.sendTransaction(transaction, connection);
-                await connection.confirmTransaction(txHash);
+                await finalTransaction(true, transaction, connection);
                 alert(`You has been lock to this target successful`);
-                finalTransaction(txHash, false);
             }
         } catch (error) {
             alert(error.message);
         }
-    }, [input, publicKey, endpoint, programTarget, wallet, finalTransaction]);
+    }, [input, publicKey, endpoint, programTarget, finalTransaction]);
     const handleButtonTransferSFC = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -2229,13 +2294,12 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                                     transaction.add(intru2);
                                 }
                             }
-                            let txHash = await wallet.sendTransaction(transaction, connection);
-                            await connection.confirmTransaction(txHash);
+                            await finalTransaction(true, transaction, connection);
                             alert(`You has been transfered to this target successful`);
-                            finalTransaction(txHash, true);
                         }
                     } catch (e) {
                         console.log(`${e}`);
+                        alert(e);
                     }
                 }
             }
@@ -2253,7 +2317,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         } catch (error) {
             alert(error.message);
         }
-    }, [publicKey, programTarget, endpoint, input2, input, wallet, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    }, [publicKey, programTarget, endpoint, input2, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonTransferLP = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -2302,13 +2366,12 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                                     transaction.add(intru2);
                                 }
                             }
-                            let txHash = await wallet.sendTransaction(transaction, connection);
-                            await connection.confirmTransaction(txHash);
+                            await finalTransaction(true, transaction, connection);
                             alert(`You has been transfered to this target successful`);
-                            finalTransaction(txHash, true);
                         }
                     } catch (e) {
                         console.log(`${e}`);
+                        alert(e);
                     }
                 }
             }
@@ -2326,7 +2389,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         } catch (error) {
             alert(error.message);
         }
-    }, [publicKey, programTarget, endpoint, input2, input, wallet, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    }, [publicKey, programTarget, endpoint, input2, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonTransferAsset = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -2380,13 +2443,12 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                                     transaction.add(intru2);
                                 }
                             }
-                            let txHash = await wallet.sendTransaction(transaction, connection);
-                            await connection.confirmTransaction(txHash);
+                            await finalTransaction(true, transaction, connection);
                             alert(`You has been transfered to this target successful`);
-                            finalTransaction(txHash, true);
                         }
                     } catch (e) {
                         console.log(`${e}`);
+                        alert(e);
                     }
                 }
             }
@@ -2403,7 +2465,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         } catch (error) {
             alert(error.message);
         }
-    }, [publicKey, programTarget, endpoint, input2, input, wallet, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    }, [publicKey, programTarget, endpoint, input2, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonDepositAsset = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -2452,13 +2514,12 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                                     transaction.add(intru2);
                                 }
                             }
-                            let txHash = await wallet.sendTransaction(transaction, connection);
-                            await connection.confirmTransaction(txHash);
+                            await finalTransaction(true, transaction, connection);
                             alert(`You has been deposited to this target successful`);
-                            finalTransaction(txHash, true);
                         }
                     } catch (e) {
                         console.log(`${e}`);
+                        alert(e);
                     }
                 }
             }
@@ -2477,7 +2538,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, programTarget, endpoint, input2, input, wallet, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    }, [publicKey, programTarget, endpoint, input2, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonWithdrawAsset = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -2526,13 +2587,12 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                                     transaction.add(intru2);
                                 }
                             }
-                            let txHash = await wallet.sendTransaction(transaction, connection);
-                            await connection.confirmTransaction(txHash);
+                            await finalTransaction(true, transaction, connection);
                             alert(`You has been withdrawed from this target`);
-                            finalTransaction(txHash, true);
                         }
                     } catch (e) {
                         console.log(`${e}`);
+                        alert(e);
                     }
                 }
             }
@@ -2549,7 +2609,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         } catch (error) {
             alert(error.message);
         }
-    }, [publicKey, programTarget, endpoint, input2, input, wallet, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    }, [publicKey, programTarget, endpoint, input2, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonTributeAsset = useCallback(async () => {
         try {
             let mintString = "4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ";
@@ -2609,14 +2669,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                             transaction.add(intru2);
                         }
                     }
-                    let txHash = await wallet.sendTransaction(transaction, connection);
-                    await connection.confirmTransaction(txHash);
+                    await finalTransaction(true, transaction, connection);
                     alert(`You has been tributed your asset successful`);
-                    finalTransaction(txHash, false);
                 }
 
             } catch (e) {
                 console.log(`${e}`);
+                alert(e);
             }
         } catch (error) {
             console.error("Error fetching outer IDL: ", error);
@@ -2676,6 +2735,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 }
             } catch (e) {
                 console.log(`${e}`);
+                alert(e);
             }
         } catch (error) {
             console.error("Error fetching outer IDL: ", error);
@@ -2739,13 +2799,12 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                             transaction.add(intru2);
                         }
                     }
-                    let txHash = await wallet.sendTransaction(transaction, connection);
-                    await connection.confirmTransaction(txHash);
+                    await finalTransaction(true, transaction, connection);
                     alert(`You summoned your asset from the Vault successful`);
-                    finalTransaction(txHash, false);
                 }
             } catch (e) {
                 console.log(`${e}`);
+                alert(e);
             }
 
         } catch (error) {
@@ -2816,13 +2875,12 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                             transaction.add(intru3);
                         }
                     }
-                    let txHash = await wallet.sendTransaction(transaction, connection);
-                    await connection.confirmTransaction(txHash);
+                    await finalTransaction(true, transaction, connection);
                     alert(`You summoned your asset from the Vault successful`);
-                    finalTransaction(txHash, false);
                 }
             } catch (e) {
                 console.log(`${e}`);
+                alert(e);
             }
 
         } catch (error) {
@@ -2951,13 +3009,12 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                                     transaction.add(intru2);
                                 }
                             }
-                            let txHash = await wallet.sendTransaction(transaction, connection);
-                            await connection.confirmTransaction(txHash);
+                            await finalTransaction(true, transaction, connection);
                             alert(`You has been tributed your asset for this target successful`);
-                            finalTransaction(txHash, true);
                         }
                     } catch (e) {
                         console.log(`${e}`);
+                        alert(e);
                     }
                 }
             }
@@ -3019,10 +3076,8 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                             }
                         }
                         alert(`Token account opening`);
-                        const txHash = await wallet.sendTransaction(transaction, connection);
-                        await connection.confirmTransaction(txHash);
+                        await finalTransaction(true, transaction, connection);
                         alert(`Token account opened successful`);
-                        finalTransaction(txHash, true);
                     } else {
                         alert(`Token account already exists`);
                     }
@@ -3043,7 +3098,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, programTarget, endpoint, input, wallet, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    }, [publicKey, programTarget, endpoint, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonOpenLPTarget = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -3086,10 +3141,8 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                             }
                         }
                         alert(`LP token account opening`);
-                        const txHash = await wallet.sendTransaction(transaction, connection);
-                        await connection.confirmTransaction(txHash);
+                        await finalTransaction(true, transaction, connection);
                         alert(`LP token account opened successful`);
-                        finalTransaction(txHash, true);
                     } else {
                         alert(`LP token account already exists`);
                     }
@@ -3110,7 +3163,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, programTarget, endpoint, input, wallet, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    }, [publicKey, programTarget, endpoint, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonBuySolLinkCall = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -3142,15 +3195,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         }
                     }
                     alert(`You buying your Dev Sol by VND to the vault successful`);
-                    const txHash = await wallet.sendTransaction(transaction, connection);
-                    await connection.confirmTransaction(txHash);
+                    await finalTransaction(true, transaction, connection);
                     alert(`You has been buyed your Dev Sol by VND from the vault successful`);
-                    finalTransaction(txHash, false);
                 } else {
                     console.error('Error: TransactionInstructions not found');
                 }
             })
-    }, [endpoint, finalTransaction, handleButtonBuySolLC, handleButtonSimulateBuy, handleButtonTributeAssetLinkCall, handleButtonUserMessageLinkCall, input, wallet]);
+    }, [endpoint, finalTransaction, handleButtonBuySolLC, handleButtonSimulateBuy, handleButtonTributeAssetLinkCall, handleButtonUserMessageLinkCall, input]);
     const handleButtonBuySolLinkCallTarget = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -3181,7 +3232,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     const connection = new Connection(endpoint, 'finalized');
                     const transaction = new Transaction().add(intru1).add(intru2).add(intru3);
                     if (input !== "") {
-                        const result = await handleButtonUserMessageLinkCall();
+                        const result = await handleButtonUserMessageTargetLinkCall(new PublicKey(String(targetAddress).valueOf()));
                         if (result instanceof TransactionInstruction) {
                             let intru4: TransactionInstruction | null = null;
                             intru4 = result;
@@ -3189,15 +3240,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         }
                     }
                     alert(`You buying your Dev Sol by VND to the vault successful`);
-                    const txHash = await wallet.sendTransaction(transaction, connection);
-                    await connection.confirmTransaction(txHash);
+                    await finalTransaction(true, transaction, connection);
                     alert(`You has been buyed your Dev Sol by VND from the vault successful`);
-                    finalTransaction(txHash, true);
                 } else {
                     console.error('Error: TransactionInstructions not found');
                 }
             })
-    }, [endpoint, finalTransaction, handleButtonBuySolLC, handleButtonSimulateBuy, handleButtonTransferSolLinkCall, handleButtonTributeAssetLinkCall, handleButtonUserMessageLinkCall, input, input2, wallet]);
+    }, [endpoint, finalTransaction, handleButtonBuySolLC, handleButtonSimulateBuy, handleButtonTransferSolLinkCall, handleButtonTributeAssetLinkCall, handleButtonUserMessageTargetLinkCall, input, input2, targetAddress]);
     const handleButtonSellSolLinkCall = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -3229,15 +3278,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         }
                     }
                     alert(`You selling your Dev Sol for VND to the vault successful`);
-                    const txHash = await wallet.sendTransaction(transaction, connection);
-                    await connection.confirmTransaction(txHash);
+                    await finalTransaction(true, transaction, connection);
                     alert(`You has been selled your Dev Sol for VND to the vault successful`);
-                    finalTransaction(txHash, false);
                 } else {
                     console.error('Error: TransactionInstructions not found');
                 }
             })
-    }, [endpoint, finalTransaction, handleButtonSellSolLC, handleButtonSimulateSell, handleButtonSummonAssetLinkCall, handleButtonUserMessageLinkCall, input, wallet]);
+    }, [endpoint, finalTransaction, handleButtonSellSolLC, handleButtonSimulateSell, handleButtonSummonAssetLinkCall, handleButtonUserMessageLinkCall, input]);
     const handleButtonSellSolLinkCallTarget = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -3269,7 +3316,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     const connection = new Connection(endpoint, 'finalized');
                     const transaction = new Transaction().add(intru1).add(intru2).add(intru3);
                     if (input !== "") {
-                        const result = await handleButtonUserMessageLinkCall();
+                        const result = await await handleButtonUserMessageTargetLinkCall(new PublicKey(String(targetAddress).valueOf()));
                         if (result instanceof TransactionInstruction) {
                             let intru4: TransactionInstruction | null = null;
                             intru4 = result;
@@ -3277,15 +3324,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         }
                     }
                     alert(`You selling your Dev Sol for VND to the vault successful`);
-                    const txHash = await wallet.sendTransaction(transaction, connection);
-                    await connection.confirmTransaction(txHash);
+                    await finalTransaction(true, transaction, connection);
                     alert(`You has been selled your Dev Sol for VND to the vault successful`);
-                    finalTransaction(txHash, true);
                 } else {
                     console.error('Error: TransactionInstructions not found');
                 }
             })
-    }, [endpoint, finalTransaction, handleButtonSellSolLC, handleButtonSimulateSell, handleButtonSummonAssetLinkCall, handleButtonTransferAssetLinkCall, handleButtonUserMessageLinkCall, input, wallet]);
+    }, [endpoint, finalTransaction, handleButtonSellSolLC, handleButtonSimulateSell, handleButtonSummonAssetLinkCall, handleButtonTransferAssetLinkCall, handleButtonUserMessageTargetLinkCall, input, targetAddress]);
     const handleButtonMintLPLinkCall = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -3317,15 +3362,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         }
                     }
                     alert(`You minting your LP by VND from the vault successful`);
-                    const txHash = await wallet.sendTransaction(transaction, connection);
-                    await connection.confirmTransaction(txHash);
+                    await finalTransaction(true, transaction, connection);
                     alert(`You has been minted your LP by VND from the vault successful`);
-                    finalTransaction(txHash, false);
                 } else {
                     console.error('Error: TransactionInstructions not found');
                 }
             })
-    }, [endpoint, finalTransaction, handleButtonSimulateMintLP, handleButtonSummonLPLC, handleButtonTributeAssetLinkCall, handleButtonUserMessageLinkCall, input, wallet]);
+    }, [endpoint, finalTransaction, handleButtonSimulateMintLP, handleButtonSummonLPLC, handleButtonTributeAssetLinkCall, handleButtonUserMessageLinkCall, input]);
     const handleButtonMintLPLinkCallTarget = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -3356,7 +3399,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     const connection = new Connection(endpoint, 'finalized');
                     const transaction = new Transaction().add(intru1).add(intru2).add(intru3);
                     if (input !== "") {
-                        const result = await handleButtonUserMessageLinkCall();
+                        const result = await await handleButtonUserMessageTargetLinkCall(new PublicKey(String(targetAddress).valueOf()));
                         if (result instanceof TransactionInstruction) {
                             let intru4: TransactionInstruction | null = null;
                             intru4 = result;
@@ -3364,15 +3407,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         }
                     }
                     alert(`You minting your LP by VND from the vault successful`);
-                    const txHash = await wallet.sendTransaction(transaction, connection);
-                    await connection.confirmTransaction(txHash);
+                    await finalTransaction(true, transaction, connection);
                     alert(`You has been minted your LP by VND from the vault successful`);
-                    finalTransaction(txHash, true);
                 } else {
                     console.error('Error: TransactionInstructions not found');
                 }
             })
-    }, [endpoint, finalTransaction, handleButtonSimulateMintLP, handleButtonSummonLPLC, handleButtonTransferLPLinkCall, handleButtonTributeAssetLinkCall, handleButtonUserMessageLinkCall, input, input2, wallet]);
+    }, [endpoint, finalTransaction, handleButtonSimulateMintLP, handleButtonSummonLPLC, handleButtonTransferLPLinkCall, handleButtonTributeAssetLinkCall, handleButtonUserMessageTargetLinkCall, input, input2, targetAddress]);
     const handleButtonBurnLPLinkCall = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -3404,15 +3445,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         }
                     }
                     alert(`You burning your LP for VND from the vault successful`);
-                    const txHash = await wallet.sendTransaction(transaction, connection);
-                    await connection.confirmTransaction(txHash);
+                    await finalTransaction(true, transaction, connection);
                     alert(`You has been burned your LP for VND from the vault successful`);
-                    finalTransaction(txHash, false);
                 } else {
                     console.error('Error: TransactionInstructions not found');
                 }
             })
-    }, [endpoint, finalTransaction, handleButtonSimulateBurnLP, handleButtonSummonAssetLinkCall, handleButtonTributeLPLC, handleButtonUserMessageLinkCall, input, wallet]);
+    }, [endpoint, finalTransaction, handleButtonSimulateBurnLP, handleButtonSummonAssetLinkCall, handleButtonTributeLPLC, handleButtonUserMessageLinkCall, input]);
     const handleButtonBurnLPLinkCallTarget = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -3451,7 +3490,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     const connection = new Connection(endpoint, 'finalized');
                     const transaction = new Transaction().add(intru1).add(intru2).add(intru3).add(intru4);
                     if (input !== "") {
-                        const result = await handleButtonUserMessageLinkCall();
+                        const result = await handleButtonUserMessageTargetLinkCall(new PublicKey(String(targetAddress).valueOf()));
                         if (result instanceof TransactionInstruction) {
                             let intru5: TransactionInstruction | null = null;
                             intru5 = result;
@@ -3459,18 +3498,15 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         }
                     }
                     alert(`You burning your LP for VND from the vault successful`);
-                    const txHash = await wallet.sendTransaction(transaction, connection);
-                    await connection.confirmTransaction(txHash);
+                    await finalTransaction(true, transaction, connection);
                     alert(`You has been burned your LP for VND from the vault successful`);
-                    finalTransaction(txHash, false);
                 } else {
                     console.error('Error: TransactionInstructions not found');
                 }
             })
-    }, [endpoint, finalTransaction, handleButtonSimulateBurnLP, handleButtonSimulateBurnLPPlus, handleButtonSummonAssetLinkCall, handleButtonTransferAssetLinkCall, handleButtonTransferSolLinkCall, handleButtonTributeLPLC, handleButtonUserMessageLinkCall, input, wallet]);
+    }, [endpoint, finalTransaction, handleButtonSimulateBurnLP, handleButtonSimulateBurnLPPlus, handleButtonSummonAssetLinkCall, handleButtonTransferAssetLinkCall, handleButtonTransferSolLinkCall, handleButtonTributeLPLC, handleButtonUserMessageTargetLinkCall, input, targetAddress]);
     return (
         <>
-            {<WalletMultiButton />}
             <div>
                 <button onClick={handleButtonClick}>Watch Tar</button>
                 <button onClick={handleButtonLockTarget}>Lock Tar</button>
@@ -3533,28 +3569,26 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 <button onClick={handleButtonMintLPLinkCallTarget}>Mint LP-VND Tar</button>
                 <button onClick={handleButtonBurnLPLinkCallTarget}>Burn LP-VND Tar</button>
             </div>
-            {wallet.connected && (
-                <div className="wallet-info">
-                    <div>Wallet Address: {walletAddress}</div>
-                    <div>Account Name: {accountName}</div>
-                    <div>Target Address: {targetAddress}</div>
-                    <div>Wallet Balance: {walletBalance} Dev SOL</div>
-                    <div>Wallet LP Token: {walletLPToken} LPSFC</div>
-                    <div>Wallet Stable Coin: {walletStableCoin} SFC - VND</div>
-                    <div>Wallet Asset: {walletAsset} VND</div>
-                    <div>Stable Coin Supply: {stableCoinSupply} SFC - VND</div>
-                    <div>Total Asset Base: {totalAssetBase} VND</div>
-                    <div>LP Token Supply: {lpTokenSupply} LPSFC</div>
-                    <div>Pool Gas Token: {poolGasToken} Dev SOL</div>
-                    <div>Pool Stable Coin: {poolStableCoin} SFC - VND</div>
-                    <div>Pool Ratio Dev Sol 1 : {poolRatio} SFC - VND</div>
-                    <div>Pool K value: {poolKValue}</div>
-                    <div>
-                        <img src="https://i.ibb.co/vxRnDKx/SFC-VND.jpg" alt="SFC - VND Logo" title='SFC - VND Logo' width="100" height="100" />
-                        <img src="https://i.ibb.co/wMRXC4M/LP-Token-Logo.webp" alt="LPSFC Logo" title='LPSFC Logo' width="100" height="100" />
-                    </div>
+            <div className="wallet-info">
+                <div>Wallet Address: {walletAddress}</div>
+                <div>Account Name: {accountName}</div>
+                <div>Target Address: {targetAddress}</div>
+                <div>Wallet Balance: {walletBalance} Dev SOL</div>
+                <div>Wallet LP Token: {walletLPToken} LPSFC</div>
+                <div>Wallet Stable Coin: {walletStableCoin} SFC - VND</div>
+                <div>Wallet Asset: {walletAsset} VND</div>
+                <div>Stable Coin Supply: {stableCoinSupply} SFC - VND</div>
+                <div>Total Asset Base: {totalAssetBase} VND</div>
+                <div>LP Token Supply: {lpTokenSupply} LPSFC</div>
+                <div>Pool Gas Token: {poolGasToken} Dev SOL</div>
+                <div>Pool Stable Coin: {poolStableCoin} SFC - VND</div>
+                <div>Pool Ratio Dev Sol 1 : {poolRatio} SFC - VND</div>
+                <div>Pool K value: {poolKValue}</div>
+                <div>
+                    <img src="https://i.ibb.co/vxRnDKx/SFC-VND.jpg" alt="SFC - VND Logo" title='SFC - VND Logo' width="100" height="100" />
+                    <img src="https://i.ibb.co/wMRXC4M/LP-Token-Logo.webp" alt="LPSFC Logo" title='LPSFC Logo' width="100" height="100" />
                 </div>
-            )}
+            </div>
         </>
     );
 }
@@ -3574,6 +3608,7 @@ const App: FC = () => {
             <div className="wallets-container">
                 <WalletProvider wallets={wallets} autoConnect onError={onError}>
                     <WalletModalProvider>
+                        <WalletMultiButton />
                         <WalletComponent endpoint={endpoint} />
                     </WalletModalProvider>
                 </WalletProvider>
