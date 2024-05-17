@@ -427,17 +427,24 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
     }, [publicKey, programTarget, endpoint]);
     const finalTransaction = useCallback(async (isTarget: boolean, transaction: Transaction, connection: Connection) => {
         let txHash = await wallet.sendTransaction(transaction, connection);
-        await connection.confirmTransaction(txHash);
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+        await connection.confirmTransaction(
+            {
+                blockhash,
+                lastValidBlockHeight,
+                signature: txHash,
+            },
+            "confirmed"
+        );
         const solanaExplorer = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
         const solScan = `https://solscan.io/tx/${txHash}?cluster=devnet`;
         setsolanaExplorer(solanaExplorer);
         setsolScan(solScan);
         if (isTarget) {
-            await fetchBalance();
-        } else {
             await handleButtonClick();
+        } else {
+            await fetchBalance();
         }
-
     }, [fetchBalance, handleButtonClick, wallet]);
     const handleButtonUserMessageLinkCall = useCallback(async () => {
         let txIntru: TransactionInstruction;
@@ -998,7 +1005,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru2);
                     }
                 }
-                await finalTransaction(true, transaction, connection);
+                await finalTransaction(false, transaction, connection);
                 alert(`You has been provided your liquidity to the vault successful`);
 
             }
@@ -1180,7 +1187,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru2);
                     }
                 }
-                await finalTransaction(true, transaction, connection);
+                await finalTransaction(false, transaction, connection);
                 alert(`You has been buyed your Dev Sol from the vault successful`);
             }
             return amountLinkCall;
@@ -1349,7 +1356,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru2);
                     }
                 }
-                await finalTransaction(true, transaction, connection);
+                await finalTransaction(false, transaction, connection);
                 alert(`You has been withdrawed your Sol from the vault successful`);
             }
             return amountLinkCall;
@@ -1537,7 +1544,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru2);
                     }
                 }
-                await finalTransaction(true, transaction, connection);
+                await finalTransaction(false, transaction, connection);
                 alert(`You has been selled your Sol from the vault successful`);
             }
             return amountLinkCall;
@@ -1948,7 +1955,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     })
                     .instruction();
                 let transaction = new Transaction().add(txIntru);
-                await finalTransaction(true, transaction, connection);
+                await finalTransaction(false, transaction, connection);
                 alert(`You has been sended message to everyone successful`);
             }
         } catch (error) {
@@ -2043,7 +2050,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     })
                     .instruction();
                 let transaction = new Transaction().add(txIntru);
-                await finalTransaction(true, transaction, connection);
+                await finalTransaction(false, transaction, connection);
                 alert(`Your account name changed successful`);
             }
         } catch (error) {
@@ -2082,7 +2089,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru2);
                     }
                 }
-                await finalTransaction(true, transaction, connection);
+                await finalTransaction(false, transaction, connection);
                 alert(`Your asset account opened successful`);
             }
         } catch (error) {
@@ -2122,7 +2129,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     }
                 }
                 alert(`Token account opening`);
-                await finalTransaction(true, transaction, connection);
+                await finalTransaction(false, transaction, connection);
                 alert(`Token account opened successful`);
             } else {
                 alert(`Token account already exists`);
@@ -2165,7 +2172,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     }
                 }
                 alert(`LP token account opening`);
-                await finalTransaction(true, transaction, connection);
+                await finalTransaction(false, transaction, connection);
                 alert(`LP token account opened successful`);
             } else {
                 alert(`LP token account already exists`);
@@ -2206,7 +2213,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru2);
                     }
                 }
-                await finalTransaction(true, transaction, connection);
+                await finalTransaction(false, transaction, connection);
                 alert(`Your asset account closed successful`);
             }
         } catch (error) {
@@ -2669,7 +2676,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                             transaction.add(intru2);
                         }
                     }
-                    await finalTransaction(true, transaction, connection);
+                    await finalTransaction(false, transaction, connection);
                     alert(`You has been tributed your asset successful`);
                 }
 
@@ -2799,7 +2806,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                             transaction.add(intru2);
                         }
                     }
-                    await finalTransaction(true, transaction, connection);
+                    await finalTransaction(false, transaction, connection);
                     alert(`You summoned your asset from the Vault successful`);
                 }
             } catch (e) {
@@ -3195,7 +3202,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         }
                     }
                     alert(`You buying your Dev Sol by VND to the vault successful`);
-                    await finalTransaction(true, transaction, connection);
+                    await finalTransaction(false, transaction, connection);
                     alert(`You has been buyed your Dev Sol by VND from the vault successful`);
                 } else {
                     console.error('Error: TransactionInstructions not found');
@@ -3278,7 +3285,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         }
                     }
                     alert(`You selling your Dev Sol for VND to the vault successful`);
-                    await finalTransaction(true, transaction, connection);
+                    await finalTransaction(false, transaction, connection);
                     alert(`You has been selled your Dev Sol for VND to the vault successful`);
                 } else {
                     console.error('Error: TransactionInstructions not found');
@@ -3362,7 +3369,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         }
                     }
                     alert(`You minting your LP by VND from the vault successful`);
-                    await finalTransaction(true, transaction, connection);
+                    await finalTransaction(false, transaction, connection);
                     alert(`You has been minted your LP by VND from the vault successful`);
                 } else {
                     console.error('Error: TransactionInstructions not found');
@@ -3445,7 +3452,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         }
                     }
                     alert(`You burning your LP for VND from the vault successful`);
-                    await finalTransaction(true, transaction, connection);
+                    await finalTransaction(false, transaction, connection);
                     alert(`You has been burned your LP for VND from the vault successful`);
                 } else {
                     console.error('Error: TransactionInstructions not found');
