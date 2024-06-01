@@ -33,9 +33,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
     const [walletAsset, setwalletAsset] = useState<number | null>(null);
     const [walletAssetTarget, setwalletAssetTarget] = useState<number | null>(null);
     const [subIDMimeInforTarget, setSubIDMimeInforTarget] = useState(0);
-    const [targetAddress, settargetAddress] = useState<String | null>(null);
-    const [targetAddressTarget, settargetAddressTarget] = useState<String | null>(null);
-    const [subIDTargetInforTarget, setSubIDTargetInforTarget] = useState(0);
+    const [targetAddress0, setTargetAddress0] = useState<String | null>(null);
+    const [targetAddress1, setTargetAddress1] = useState<String | null>(null);
+    const [targetAddress2, setTargetAddress2] = useState<String | null>(null);
+    const [targetAddress3, setTargetAddress3] = useState<String | null>(null);
+    const [targetAddress4, setTargetAddress4] = useState<String | null>(null);
+    //const [targetAddressTarget, settargetAddressTarget] = useState<String | null>(null);
+    //const [subIDTargetInforTarget, setSubIDTargetInforTarget] = useState(0);
     const [solanaExplorer, setsolanaExplorer] = useState<String | null>(null);
     const [solScan, setsolScan] = useState<String | null>(null);
     const [accountName, setaccountName] = useState<String | null>(null);
@@ -150,18 +154,45 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.error('You not yet choose wallet');
         }
         const [pda3] = PublicKey.findProgramAddressSync(
-            [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
+            [Buffer.from("list", "utf8"), thatPubkey.toBuffer()],
             new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
         );
         let accountTarget: any;
+        const target = "Non Target Key";
         function processAccountTarget() {
             if (accountTarget !== undefined) {
-                const targetAddress = accountTarget.assetTarget.toBase58();
-                settargetAddress(targetAddress);
+                let targetAddress0 = target;
+                let targetAddress1 = target;
+                let targetAddress2 = target;
+                let targetAddress3 = target;
+                let targetAddress4 = target;
+                if (accountTarget.assetTarget[0]) {
+                    targetAddress0 = accountTarget.assetTarget[0].toBase58();
+                }
+                if (accountTarget.assetTarget[1]) {
+                    targetAddress1 = accountTarget.assetTarget[1].toBase58();
+                }
+                if (accountTarget.assetTarget[2]) {
+                    targetAddress2 = accountTarget.assetTarget[2].toBase58();
+                }
+                if (accountTarget.assetTarget[3]) {
+                    targetAddress3 = accountTarget.assetTarget[3].toBase58();
+                }
+                if (accountTarget.assetTarget[4]) {
+                    targetAddress4 = accountTarget.assetTarget[4].toBase58();
+                }
+                setTargetAddress0(targetAddress0);
+                setTargetAddress1(targetAddress1);
+                setTargetAddress2(targetAddress2);
+                setTargetAddress3(targetAddress3);
+                setTargetAddress4(targetAddress4);
             } else {
                 console.error("Account target is not yet fetched.");
-                const targetAddress = "Non target";
-                settargetAddress(targetAddress);
+                setTargetAddress0(target);
+                setTargetAddress1(target);
+                setTargetAddress2(target);
+                setTargetAddress3(target);
+                setTargetAddress4(target);
                 alert(`Can't find lock target`);
             }
         }
@@ -544,7 +575,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         }
         return pda2;
     }, [programTarget, targetKey]);
-    const fetchTargetInfoTarget = useCallback(async () => {
+    /*const fetchTargetInfoTarget = useCallback(async () => {
         if (!targetKey) {
             return;
         }
@@ -575,7 +606,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 });
         }
         return pda4;
-    }, [programTarget, targetKey]);
+    }, [programTarget, targetKey]);*/
     useEffect(() => {
         if (!targetKey) {
             return;
@@ -649,7 +680,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 setSubIDMimeInforTarget(subID);
             })
     }, [connection, targetKey, fetchMineInfoTarget]);
-    useEffect(() => {
+    /*useEffect(() => {
         if (!targetKey) {
             return;
         }
@@ -667,68 +698,48 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 );
                 setSubIDTargetInforTarget(subID);
             })
-    }, [connection, targetKey, fetchTargetInfoTarget]);
+    }, [connection, targetKey, fetchTargetInfoTarget]);*/
     const handleButtonClick = useCallback(async () => {
+        let flashTargetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            flashTargetKey = new PublicKey(input3String);
+        }
         try {
-            let thatPubkey: any;
-            if (publicKey) {
-                thatPubkey = publicKey;
-            } else {
-                console.error('You not yet choose wallet');
-            }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-            );
-            let accountTarget: any;
-            let flashTargetKey: any;
-            async function processAccountTarget() {
-                if (accountTarget !== undefined) {
-                    if (accountTarget.assetTarget !== input3 && input3 !== "") {
-                        flashTargetKey = input3;
-                    } else {
-                        flashTargetKey = accountTarget.assetTarget
-                    }
-                    if (flashTargetKey !== targetKey) {
-                        if (subIDMimeInforTarget !== 0) {
-                            await connection.removeAccountChangeListener(subIDMimeInforTarget);
-                        }
-                        if (subIDTargetInforTarget !== 0) {
-                            await connection.removeAccountChangeListener(subIDTargetInforTarget);
-                        }
-                        if (subIDWalletInforTarget !== 0) {
-                            await connection.removeAccountChangeListener(subIDWalletInforTarget);
-                        }
-                        if (subIDWalletLPTokenTarget !== 0) {
-                            await connection.removeAccountChangeListener(subIDWalletLPTokenTarget);
-                        }
-                        if (subIDWalletStableCoinTarget !== 0) {
-                            await connection.removeAccountChangeListener(subIDWalletStableCoinTarget);
-                        }
-                        setTargetKey(flashTargetKey);
-                    }
-                    setIsNonTarget(false);
-                    setIsTarget(true);
+            if (flashTargetKey !== targetKey) {
+                if (subIDMimeInforTarget !== 0) {
+                    await connection.removeAccountChangeListener(subIDMimeInforTarget);
                 }
+                /*if (subIDTargetInforTarget !== 0) {
+                    await connection.removeAccountChangeListener(subIDTargetInforTarget);
+                }*/
+                if (subIDWalletInforTarget !== 0) {
+                    await connection.removeAccountChangeListener(subIDWalletInforTarget);
+                }
+                if (subIDWalletLPTokenTarget !== 0) {
+                    await connection.removeAccountChangeListener(subIDWalletLPTokenTarget);
+                }
+                if (subIDWalletStableCoinTarget !== 0) {
+                    await connection.removeAccountChangeListener(subIDWalletStableCoinTarget);
+                }
+                setTargetKey(flashTargetKey);
             }
-            if (programTarget) {
-                programTarget.account.userTarget.fetch(pda3)
-                    .then(target => {
-                        accountTarget = target;
-                        processAccountTarget();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
-            }
-
+            setIsNonTarget(false);
+            setIsTarget(true);
         } catch (error) {
             alert(error.message);
         }
-    }, [publicKey, programTarget, input3, targetKey, subIDMimeInforTarget, subIDTargetInforTarget, subIDWalletInforTarget, subIDWalletLPTokenTarget, subIDWalletStableCoinTarget, connection]);
+    }, [input3, targetKey, subIDMimeInforTarget, /*subIDTargetInforTarget,*/ subIDWalletInforTarget, subIDWalletLPTokenTarget, subIDWalletStableCoinTarget, connection]);
     const finalTransaction = useCallback(async (isTarget: boolean, transaction: Transaction, connection: Connection) => {
-        let txIntruPlus: TransactionInstruction = ComputeBudgetProgram.setComputeUnitPrice({ microLamports: Number(input4).valueOf() });
-        transaction.add(txIntruPlus);
+        let SolFee: any;
+        if (input4 !== "") {
+            SolFee = Number(input4).valueOf();
+            let feeIntru = ComputeBudgetProgram.setComputeUnitPrice({ microLamports: SolFee });
+            transaction.add(feeIntru);
+        }
+
         let txHash = await wallet.sendTransaction(transaction, connection);
         const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
         await connection.confirmTransaction(
@@ -778,8 +789,15 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             alert(error.message);
         }
     }, [publicKey, programTarget, input]);
-    const handleButtonUserMessageTargetLinkCall = useCallback(async (targetKey: PublicKey) => {
+    const handleButtonUserMessageTargetLinkCall = useCallback(async () => {
         let txIntru: TransactionInstruction;
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -791,10 +809,6 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 [Buffer.from("client", "utf8"), targetKey.toBuffer()],
                 new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
             );
-            const [targetDataPda] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-            );
             const [fromDataPda] = PublicKey.findProgramAddressSync(
                 [Buffer.from("client", "utf8"), thatPubkey.toBuffer()],
                 new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
@@ -802,9 +816,8 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             try {
                 if (programTarget) {
                     txIntru = await programTarget.methods
-                        .userMessageTarget(input)
+                        .userMessageTarget(targetKey, input)
                         .accounts({
-                            target: targetDataPda,
                             fromclient: fromDataPda,
                             toclient: toDataPda,
                             signer: thatPubkey,
@@ -819,9 +832,16 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         } catch (error) {
             alert(error.message);
         }
-    }, [publicKey, programTarget, input]);
+    }, [publicKey, input3, programTarget, input]);
     const handleButtonTransferAssetLinkCall = useCallback(async (linkamount: number) => {
         let txIntru: TransactionInstruction;
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -829,57 +849,30 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             } else {
                 console.error('You not yet choose wallet');
             }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
+            const [toDataPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("client", "utf8"), targetKey.toBuffer()],
                 new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
             );
-            let targetKey: any;
-            if (programTarget) {
-                const result = await programTarget.account.userTarget.fetch(pda3)
-                    .then(async target => {
-                        if (target.assetTarget !== input3 && input3 !== "") {
-                            targetKey = input3;
-                        } else {
-                            targetKey = target.assetTarget;
-                        }
-                        const [toDataPda] = PublicKey.findProgramAddressSync(
-                            [Buffer.from("client", "utf8"), targetKey.toBuffer()],
-                            new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                        );
-                        const [targetDataPda] = PublicKey.findProgramAddressSync(
-                            [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                            new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                        );
-                        const [fromDataPda] = PublicKey.findProgramAddressSync(
-                            [Buffer.from("client", "utf8"), thatPubkey.toBuffer()],
-                            new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                        );
-                        try {
-                            const amountBN = new BN(linkamount / 100000);
-                            if (programTarget) {
-                                txIntru = await programTarget.methods
-                                    .tranferAsset(amountBN)
-                                    .accounts({
-                                        target: targetDataPda,
-                                        fromclient: fromDataPda,
-                                        toclient: toDataPda,
-                                        signer: thatPubkey,
-                                    })
-                                    .instruction();
-                                return txIntru;
-                            }
-                        } catch (e) {
-                            console.log(`${e}`);
-                            alert(e);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
-                if (result instanceof TransactionInstruction) {
-                    txIntru = result;
+            const [fromDataPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("client", "utf8"), thatPubkey.toBuffer()],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            try {
+                const amountBN = new BN(linkamount / 100000);
+                if (programTarget) {
+                    txIntru = await programTarget.methods
+                        .tranferAsset(targetKey, amountBN)
+                        .accounts({
+                            fromclient: fromDataPda,
+                            toclient: toDataPda,
+                            signer: thatPubkey,
+                        })
+                        .instruction();
                     return txIntru;
                 }
+            } catch (e) {
+                console.log(`${e}`);
+                alert(e);
             }
         } catch (error) {
             alert(error.message);
@@ -887,6 +880,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
     }, [publicKey, programTarget, input3]);
     const handleButtonTransferSolLinkCall = useCallback(async (linkamount: number) => {
         let txIntru: TransactionInstruction;
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -894,45 +894,23 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             } else {
                 console.error('You not yet choose wallet');
             }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-            );
-            let targetKey: any;
-            if (programTarget) {
-                const result = await programTarget.account.userTarget.fetch(pda3)
-                    .then(async target => {
-                        if (target.assetTarget !== input3 && input3 !== "") {
-                            targetKey = input3;
-                        } else {
-                            targetKey = target.assetTarget;
-                        }
-                        try {
-                            let realamount = linkamount * LAMPORTS_PER_SOL;
-                            const amountBN = new BN(realamount);
-                            if (programTarget) {
-                                txIntru = await programTarget.methods
-                                    .tranferSol(amountBN)
-                                    .accounts({
-                                        target: targetKey,
-                                        signer: thatPubkey,
-                                        systemProgram: SystemProgram.programId,
-                                    })
-                                    .instruction();
-                                return txIntru;
-                            }
-                        } catch (e) {
-                            console.log(`${e}`);
-                            alert(e);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
-                if (result instanceof TransactionInstruction) {
-                    txIntru = result;
+            try {
+                let realamount = linkamount * LAMPORTS_PER_SOL;
+                const amountBN = new BN(realamount);
+                if (programTarget) {
+                    txIntru = await programTarget.methods
+                        .tranferSol(amountBN)
+                        .accounts({
+                            target: targetKey,
+                            signer: thatPubkey,
+                            systemProgram: SystemProgram.programId,
+                        })
+                        .instruction();
                     return txIntru;
                 }
+            } catch (e) {
+                console.log(`${e}`);
+                alert(e);
             }
         } catch (error) {
             alert(error.message);
@@ -940,6 +918,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
     }, [publicKey, programTarget, input3]);
     const handleButtonTransferSFCLinkCall = useCallback(async (linkamount: number) => {
         let txIntru: TransactionInstruction;
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -947,53 +932,31 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             } else {
                 console.error('You not yet choose wallet');
             }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-            );
-            let targetKey: any;
-            if (programTarget) {
-                const result = await programTarget.account.userTarget.fetch(pda3)
-                    .then(async target => {
-                        if (target.assetTarget !== input3 && input3 !== "") {
-                            targetKey = input3;
-                        } else {
-                            targetKey = target.assetTarget;
-                        }
-                        const connection = new Connection(endpoint, 'finalized');
-                        const tokenFiltSFC: TokenAccountsFilter = {
-                            mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
-                            programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-                        };
-                        const fromTokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFiltSFC);
-                        const toTokenAcc = await connection.getParsedTokenAccountsByOwner(targetKey, tokenFiltSFC);
-                        try {
-                            let realamount = linkamount * LAMPORTS_PER_SOL;
-                            const amountBN = new BN(realamount);
-                            if (programTarget) {
-                                txIntru = await programTarget.methods
-                                    .tranferToken(amountBN, true)
-                                    .accounts({
-                                        token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
-                                        fromtoken: fromTokenAcc.value[0].pubkey,
-                                        totoken: toTokenAcc.value[0].pubkey,
-                                        signer: thatPubkey,
-                                    })
-                                    .instruction();
-                                return txIntru;
-                            }
-                        } catch (e) {
-                            console.log(`${e}`);
-                            alert(e);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
-                if (result instanceof TransactionInstruction) {
-                    txIntru = result;
+            const connection = new Connection(endpoint, 'finalized');
+            const tokenFiltSFC: TokenAccountsFilter = {
+                mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
+                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            };
+            const fromTokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFiltSFC);
+            const toTokenAcc = await connection.getParsedTokenAccountsByOwner(targetKey, tokenFiltSFC);
+            try {
+                let realamount = linkamount * LAMPORTS_PER_SOL;
+                const amountBN = new BN(realamount);
+                if (programTarget) {
+                    txIntru = await programTarget.methods
+                        .tranferToken(amountBN, true)
+                        .accounts({
+                            token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                            fromtoken: fromTokenAcc.value[0].pubkey,
+                            totoken: toTokenAcc.value[0].pubkey,
+                            signer: thatPubkey,
+                        })
+                        .instruction();
                     return txIntru;
                 }
+            } catch (e) {
+                console.log(`${e}`);
+                alert(e);
             }
         } catch (error) {
             alert(error.message);
@@ -1001,6 +964,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
     }, [publicKey, programTarget, input3, endpoint]);
     const handleButtonTransferLPLinkCall = useCallback(async (linkamount: number) => {
         let txIntru: TransactionInstruction;
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -1008,53 +978,31 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             } else {
                 console.error('You not yet choose wallet');
             }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-            );
-            let targetKey: any;
-            if (programTarget) {
-                const result = await programTarget.account.userTarget.fetch(pda3)
-                    .then(async target => {
-                        if (target.assetTarget !== input3 && input3 !== "") {
-                            targetKey = input3;
-                        } else {
-                            targetKey = target.assetTarget;
-                        }
-                        const connection = new Connection(endpoint, 'finalized');
-                        const tokenFiltSFC: TokenAccountsFilter = {
-                            mint: new PublicKey("8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He"),
-                            programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-                        };
-                        const fromTokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFiltSFC);
-                        const toTokenAcc = await connection.getParsedTokenAccountsByOwner(targetKey, tokenFiltSFC);
-                        try {
-                            let realamount = linkamount * LAMPORTS_PER_SOL;
-                            const amountBN = new BN(realamount);
-                            if (programTarget) {
-                                txIntru = await programTarget.methods
-                                    .tranferToken(amountBN, false)
-                                    .accounts({
-                                        token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
-                                        fromtoken: fromTokenAcc.value[0].pubkey,
-                                        totoken: toTokenAcc.value[0].pubkey,
-                                        signer: thatPubkey,
-                                    })
-                                    .instruction();
-                                return txIntru;
-                            }
-                        } catch (e) {
-                            console.log(`${e}`);
-                            alert(e);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
-                if (result instanceof TransactionInstruction) {
-                    txIntru = result;
+            const connection = new Connection(endpoint, 'finalized');
+            const tokenFiltSFC: TokenAccountsFilter = {
+                mint: new PublicKey("8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He"),
+                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            };
+            const fromTokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFiltSFC);
+            const toTokenAcc = await connection.getParsedTokenAccountsByOwner(targetKey, tokenFiltSFC);
+            try {
+                let realamount = linkamount * LAMPORTS_PER_SOL;
+                const amountBN = new BN(realamount);
+                if (programTarget) {
+                    txIntru = await programTarget.methods
+                        .tranferToken(amountBN, false)
+                        .accounts({
+                            token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                            fromtoken: fromTokenAcc.value[0].pubkey,
+                            totoken: toTokenAcc.value[0].pubkey,
+                            signer: thatPubkey,
+                        })
+                        .instruction();
                     return txIntru;
                 }
+            } catch (e) {
+                console.log(`${e}`);
+                alert(e);
             }
         } catch (error) {
             alert(error.message);
@@ -1323,7 +1271,6 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 }
                 await finalTransaction(false, transaction, connection);
                 alert(`You has been provided your liquidity to the vault successful`);
-
             }
             return amountLinkCall;
         } catch (error) {
@@ -1331,7 +1278,43 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             alert(error.message);
         }
     }, [handleButtonSimulateMintLP, publicKey, endpoint, input2, poolRatio, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
+    const handleButtonLockTarget = useCallback(async (targetKey: PublicKey) => {
+        let txIntru: TransactionInstruction;
+        try {
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [targetDataPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("list", "utf8"), thatPubkey.toBuffer()],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            if (programTarget) {
+                txIntru = await programTarget.methods
+                    .lockTarget(targetKey)
+                    .accounts({
+                        target: targetDataPda,
+                        signer: thatPubkey,
+                        systemProgram: SystemProgram.programId,
+                    })
+                    .instruction();
+                return txIntru;
+            }
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [publicKey, programTarget]);
     const handleButtonSummonLPTarget = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             const amountLinkCall = await handleButtonSimulateMintLP();
             let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
@@ -1388,12 +1371,18 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     transaction.add(intru2);
                 }
                 if (input !== "") {
-                    const result = await handleButtonUserMessageLinkCall();
+                    const result = await handleButtonUserMessageTargetLinkCall();
                     if (result instanceof TransactionInstruction) {
                         let intru3: TransactionInstruction | null = null;
                         intru3 = result;
                         transaction.add(intru3);
                     }
+                }
+                const result2 = await handleButtonLockTarget(targetKey);
+                if (result2 instanceof TransactionInstruction) {
+                    let intru4: TransactionInstruction | null = null;
+                    intru4 = result2;
+                    transaction.add(intru4);
                 }
                 await finalTransaction(true, transaction, connection);
                 alert(`You has been provided your liquidity to the vault successful`);
@@ -1403,7 +1392,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateMintLP, publicKey, endpoint, input2, poolRatio, programTarget, handleButtonTransferLPLinkCall, input, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [handleButtonSimulateMintLP, publicKey, endpoint, input2, poolRatio, programTarget, handleButtonTransferLPLinkCall, input, input3, finalTransaction, handleButtonUserMessageTargetLinkCall, handleButtonLockTarget]);
     const handleButtonSummonLPLC = useCallback(async () => {
         try {
             let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
@@ -1513,6 +1502,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         }
     }, [handleButtonSimulateBuy, publicKey, endpoint, input2, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonBuySolTarget = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             const amountLinkCall = await handleButtonSimulateBuy();
             let thatPubkey: any;
@@ -1556,12 +1552,18 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     transaction.add(intru2);
                 }
                 if (input !== "") {
-                    const result = await handleButtonUserMessageTargetLinkCall(new PublicKey(String(targetAddress).valueOf()));
+                    const result = await handleButtonUserMessageTargetLinkCall();
                     if (result instanceof TransactionInstruction) {
                         let intru3: TransactionInstruction | null = null;
                         intru3 = result;
                         transaction.add(intru3);
                     }
+                }
+                const result2 = await handleButtonLockTarget(targetKey);
+                if (result2 instanceof TransactionInstruction) {
+                    let intru4: TransactionInstruction | null = null;
+                    intru4 = result2;
+                    transaction.add(intru4);
                 }
                 await finalTransaction(true, transaction, connection);
                 alert(`You has been buyed your Dev Sol from the vault successful`);
@@ -1571,7 +1573,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateBuy, publicKey, endpoint, input2, programTarget, handleButtonTransferSolLinkCall, input, finalTransaction, handleButtonUserMessageTargetLinkCall, targetAddress]);
+    }, [input3, handleButtonSimulateBuy, publicKey, endpoint, input2, programTarget, handleButtonTransferSolLinkCall, input, handleButtonLockTarget, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonBuySolLC = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -1682,6 +1684,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         }
     }, [handleButtonSimulateBurnLP, publicKey, endpoint, input2, poolRatio, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonTributeLPTarget = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             const amountLinkCall = await handleButtonSimulateBurnLP();
             let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
@@ -1744,12 +1753,18 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     transaction.add(intru3);
                 }
                 if (input !== "") {
-                    const result = await handleButtonUserMessageLinkCall();
+                    const result = await handleButtonUserMessageTargetLinkCall();
                     if (result instanceof TransactionInstruction) {
                         let intru4: TransactionInstruction | null = null;
                         intru4 = result;
                         transaction.add(intru4);
                     }
+                }
+                const result3 = await handleButtonLockTarget(targetKey);
+                if (result3 instanceof TransactionInstruction) {
+                    let intru4: TransactionInstruction | null = null;
+                    intru4 = result3;
+                    transaction.add(intru4);
                 }
                 await finalTransaction(true, transaction, connection);
                 alert(`You has been withdrawed your Sol from the vault successful`);
@@ -1759,7 +1774,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateBurnLP, publicKey, endpoint, input2, poolRatio, programTarget, handleButtonTransferSFCLinkCall, handleButtonTransferSolLinkCall, handleButtonSimulateBurnLPPlus, input, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [input3, handleButtonSimulateBurnLP, publicKey, endpoint, input2, poolRatio, programTarget, handleButtonTransferSFCLinkCall, handleButtonTransferSolLinkCall, handleButtonSimulateBurnLPPlus, input, handleButtonLockTarget, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonTributeLPLC = useCallback(async () => {
         try {
             let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
@@ -1870,6 +1885,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         }
     }, [handleButtonSimulateSell, publicKey, endpoint, input2, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonSellSolTarget = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             const amountLinkCall = await handleButtonSimulateSell();
             let thatPubkey: any;
@@ -1914,12 +1936,18 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     transaction.add(intru2);
                 }
                 if (input !== "") {
-                    const result = await handleButtonUserMessageTargetLinkCall(new PublicKey(String(targetAddress).valueOf()));
+                    const result = await handleButtonUserMessageTargetLinkCall();
                     if (result instanceof TransactionInstruction) {
                         let intru3: TransactionInstruction | null = null;
                         intru3 = result;
                         transaction.add(intru3);
                     }
+                }
+                const result2 = await handleButtonLockTarget(targetKey);
+                if (result2 instanceof TransactionInstruction) {
+                    let intru4: TransactionInstruction | null = null;
+                    intru4 = result2;
+                    transaction.add(intru4);
                 }
                 await finalTransaction(true, transaction, connection);
                 alert(`You has been selled your Sol from the vault successful`);
@@ -1929,7 +1957,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateSell, publicKey, endpoint, input2, programTarget, handleButtonTransferSFCLinkCall, input, finalTransaction, handleButtonUserMessageTargetLinkCall, targetAddress]);
+    }, [input3, handleButtonSimulateSell, publicKey, endpoint, input2, programTarget, handleButtonTransferSFCLinkCall, input, handleButtonLockTarget, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonSellSolLC = useCallback(async () => {
         try {
             let thatPubkey: any;
@@ -1972,7 +2000,8 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             alert(error.message);
         }
     }, [publicKey, endpoint, input2, programTarget]);
-    /*const handleButtonSummonSol = useCallback(async () => {
+    const handleButtonSummonSol = useCallback(async () => {
+        let txIntru: TransactionInstruction;
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -1995,16 +2024,16 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     } else {
                         alert(`You summoning your Sol from the vault`);
                         const programTarget = new Program(IDL, new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX"), getProvider());
-                        let txHash = await programTarget.methods
+                        txIntru = await programTarget.methods
                             .summonSol(amountBN)
                             .accounts({
                                 vault: pda,
                                 signer: thatPubkey,
                             })
-                            .rpc();
-                        await connection.confirmTransaction(txHash);
+                            .instruction();
+                        let transaction = new Transaction().add(txIntru);
+                        await finalTransaction(false, transaction, connection);
                         alert(`You has been summoned your Sol from the vault successful`);
-                        finalTransaction(txHash, false);
                     }
                 })
                 .catch((error) => {
@@ -2015,8 +2044,9 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, endpoint, input2, fetchBalance]);
+    }, [publicKey, endpoint, input2, finalTransaction]);
     const handleButtonTributeStable = useCallback(async () => {
+        let txIntru: TransactionInstruction;
         try {
             const [vaultDataPda] = PublicKey.findProgramAddressSync(
                 [Buffer.from("vault")],
@@ -2046,7 +2076,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         } else {
                             alert(`You tributing your SFC - VND to the Vault`);
                             const programTarget = new Program(IDL, new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX"), getProvider());
-                            let txHash = await programTarget.methods
+                            txIntru = await programTarget.methods
                                 .tributeStable(amountBN)
                                 .accounts({
                                     donator: tokenAcc.value[0].pubkey,
@@ -2054,10 +2084,10 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                                     signer: thatPubkey,
                                     token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
                                 })
-                                .rpc();
-                            await connection.confirmTransaction(txHash);
+                                .instruction();
+                            let transaction = new Transaction().add(txIntru);
+                            await finalTransaction(false, transaction, connection);
                             alert(`You has been tributed your SFC - VND to the Vault successful`);
-                            finalTransaction(txHash, false);
                         }
                     })
                     .catch((error) => {
@@ -2073,8 +2103,8 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.error("Error fetching outer IDL: ", error);
             alert(error.message);
         }
-    }, [publicKey, endpoint, input2, fetchBalance]);
-    const handleButtonTributeSol = useCallback(async () => {
+    }, [publicKey, endpoint, input2, finalTransaction]);
+    /*const handleButtonTributeSol = useCallback(async () => {
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -2180,6 +2210,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         }
     }, [publicKey, endpoint, input2, fetchBalance]);*/
     const handleButtonUserMessageTarget = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         let txIntru: TransactionInstruction;
         try {
             let thatPubkey: any;
@@ -2188,69 +2225,44 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             } else {
                 console.error('You not yet choose wallet');
             }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
+            const [toDataPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("client", "utf8"), targetKey.toBuffer()],
                 new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
             );
-            let accountTarget: any;
-            let targetKey: any;
-            async function processAccountTarget() {
-                if (accountTarget !== undefined) {
-                    targetKey = accountTarget.assetTarget;
-                    if (accountTarget.assetTarget !== input3 && input3 !== "") {
-                        targetKey = input3;
-                    } else {
-                        targetKey = accountTarget.assetTarget;
+            const [fromDataPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("client", "utf8"), thatPubkey.toBuffer()],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            const connection = new Connection(endpoint, 'finalized');
+            try {
+                if (programTarget) {
+                    alert(`You sending message to this target`);
+                    txIntru = await programTarget.methods
+                        .userMessageTarget(targetKey, input)
+                        .accounts({
+                            fromclient: fromDataPda,
+                            toclient: toDataPda,
+                            signer: thatPubkey,
+                        })
+                        .instruction();
+                    let transaction = new Transaction().add(txIntru);
+                    const result = await handleButtonLockTarget(targetKey);
+                    if (result instanceof TransactionInstruction) {
+                        let intru2: TransactionInstruction | null = null;
+                        intru2 = result;
+                        transaction.add(intru2);
                     }
-                    const [toDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("client", "utf8"), targetKey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const [targetDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const [fromDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("client", "utf8"), thatPubkey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const connection = new Connection(endpoint, 'finalized');
-                    try {
-                        if (programTarget) {
-                            alert(`You sending message to this target`);
-                            txIntru = await programTarget.methods
-                                .userMessageTarget(input)
-                                .accounts({
-                                    target: targetDataPda,
-                                    fromclient: fromDataPda,
-                                    toclient: toDataPda,
-                                    signer: thatPubkey,
-                                })
-                                .instruction();
-                            let transaction = new Transaction().add(txIntru);
-                            await finalTransaction(true, transaction, connection);
-                            alert(`You has been sended message to this target successful`);
-                        }
-                    } catch (e) {
-                        console.log(`${e}`);
-                        alert(e);
-                    }
+                    await finalTransaction(true, transaction, connection);
+                    alert(`You has been sended message to this target successful`);
                 }
-            }
-            if (programTarget) {
-                programTarget.account.userTarget.fetch(pda3)
-                    .then(target => {
-                        accountTarget = target;
-                        processAccountTarget();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
+            } catch (e) {
+                console.log(`${e}`);
+                alert(e);
             }
         } catch (error) {
             alert(error.message);
         }
-    }, [publicKey, programTarget, input3, endpoint, input, finalTransaction]);
+    }, [input3, publicKey, endpoint, programTarget, input, handleButtonLockTarget, finalTransaction]);
     const handleButtonUserMessage = useCallback(async () => {
         let txIntru: TransactionInstruction;
         try {
@@ -2284,6 +2296,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         }
     }, [publicKey, endpoint, programTarget, input, finalTransaction]);
     const handleButtonChangeNameTarget = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         let txIntru: TransactionInstruction;
         try {
             let thatPubkey: any;
@@ -2292,64 +2311,40 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             } else {
                 console.error('You not yet choose wallet');
             }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
+            const [playerDataPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("client", "utf8"), targetKey.toBuffer()],
                 new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
             );
-            let accountTarget: any;
-            let targetKey: any;
-            async function processAccountTarget() {
-                if (accountTarget !== undefined) {
-                    if (accountTarget.assetTarget !== input3 && input3 !== "") {
-                        targetKey = input3;
-                    } else {
-                        targetKey = accountTarget.assetTarget;
+            const connection = new Connection(endpoint, 'finalized');
+            try {
+                if (programTarget) {
+                    alert(`You changing the name of this target`);
+                    txIntru = await programTarget.methods
+                        .changeNameTarget(targetKey, input)
+                        .accounts({
+                            client: playerDataPda,
+                            signer: thatPubkey,
+                        })
+                        .instruction();
+                    let transaction = new Transaction().add(txIntru);
+                    const result = await handleButtonLockTarget(targetKey);
+                    if (result instanceof TransactionInstruction) {
+                        let intru2: TransactionInstruction | null = null;
+                        intru2 = result;
+                        transaction.add(intru2);
                     }
-                    const [playerDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("client", "utf8"), targetKey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const connection = new Connection(endpoint, 'finalized');
-                    const [targetDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    try {
-                        if (programTarget) {
-                            alert(`You changing the name of this target`);
-                            txIntru = await programTarget.methods
-                                .changeNameTarget(input)
-                                .accounts({
-                                    target: targetDataPda,
-                                    client: playerDataPda,
-                                    signer: thatPubkey,
-                                })
-                                .instruction();
-                            let transaction = new Transaction().add(txIntru);
-                            await finalTransaction(true, transaction, connection);
-                            alert(`You has been changed the name of this target successful`);
-                        }
-                    } catch (e) {
-                        console.log(`${e}`);
-                        alert(e);
-                    }
+                    await finalTransaction(true, transaction, connection);
+                    alert(`You has been changed the name of this target successful`);
                 }
-            }
-            if (programTarget) {
-                programTarget.account.userTarget.fetch(pda3)
-                    .then(target => {
-                        accountTarget = target;
-                        processAccountTarget();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
+            } catch (e) {
+                console.log(`${e}`);
+                alert(e);
             }
         } catch (error) {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, programTarget, input3, endpoint, input, finalTransaction]);
+    }, [input3, publicKey, endpoint, programTarget, input, handleButtonLockTarget, finalTransaction]);
     const handleButtonChangeName = useCallback(async () => {
         let txIntru: TransactionInstruction;
         try {
@@ -2555,272 +2550,203 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             alert(error.message);
         }
     }, [publicKey, endpoint, walletAsset, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
-    const handleButtonLockTarget = useCallback(async () => {
+    const handleButtonTransferSFC = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
-            let targetKeyString = input;
-            let targetKey = new PublicKey(targetKeyString);
             let thatPubkey: any;
             if (publicKey) {
                 thatPubkey = publicKey;
             } else {
                 console.error('You not yet choose wallet');
             }
-            const [targetDataPda] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
+            const connection = new Connection(endpoint, 'finalized');
+            const tokenFiltSFC: TokenAccountsFilter = {
+                mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
+                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            };
+            const fromTokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFiltSFC);
+            const toTokenAcc = await connection.getParsedTokenAccountsByOwner(targetKey, tokenFiltSFC);
+            try {
+                let amount = Number(input2).valueOf();
+                let realamount = amount * LAMPORTS_PER_SOL;
+                const amountBN = new BN(realamount);
+                if (programTarget) {
+                    alert(`You transfering to this target`);
+                    let txIntru1 = await programTarget.methods
+                        .tranferToken(amountBN, true)
+                        .accounts({
+                            token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                            fromtoken: fromTokenAcc.value[0].pubkey,
+                            totoken: toTokenAcc.value[0].pubkey,
+                            signer: thatPubkey,
+                        })
+                        .instruction();
+                    let transaction = new Transaction().add(txIntru1);
+                    if (input !== "") {
+                        const result = await handleButtonUserMessageTargetLinkCall();
+                        if (result instanceof TransactionInstruction) {
+                            let intru2: TransactionInstruction | null = null;
+                            intru2 = result;
+                            transaction.add(intru2);
+                        }
+                    }
+                    const result = await handleButtonLockTarget(targetKey);
+                    if (result instanceof TransactionInstruction) {
+                        let intru3: TransactionInstruction | null = null;
+                        intru3 = result;
+                        transaction.add(intru3);
+                    }
+                    await finalTransaction(true, transaction, connection);
+                    alert(`You has been transfered to this target successful`);
+                }
+            } catch (e) {
+                console.log(`${e}`);
+                alert(e);
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    }, [input3, publicKey, endpoint, input2, programTarget, input, handleButtonLockTarget, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    const handleButtonTransferLP = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
+        try {
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const connection = new Connection(endpoint, 'finalized');
+            const tokenFiltSFC: TokenAccountsFilter = {
+                mint: new PublicKey("8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He"),
+                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+            };
+            const fromTokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFiltSFC);
+            const toTokenAcc = await connection.getParsedTokenAccountsByOwner(targetKey, tokenFiltSFC);
+            try {
+                let amount = Number(input2).valueOf();
+                let realamount = amount * LAMPORTS_PER_SOL;
+                const amountBN = new BN(realamount);
+                if (programTarget) {
+                    alert(`You transfering to this target`);
+                    let txIntru1 = await programTarget.methods
+                        .tranferToken(amountBN, false)
+                        .accounts({
+                            token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                            fromtoken: fromTokenAcc.value[0].pubkey,
+                            totoken: toTokenAcc.value[0].pubkey,
+                            signer: thatPubkey,
+                        })
+                        .instruction();
+                    let transaction = new Transaction().add(txIntru1);
+                    if (input !== "") {
+                        const result = await handleButtonUserMessageTargetLinkCall();
+                        if (result instanceof TransactionInstruction) {
+                            let intru2: TransactionInstruction | null = null;
+                            intru2 = result;
+                            transaction.add(intru2);
+                        }
+                    }
+                    const result = await handleButtonLockTarget(targetKey);
+                    if (result instanceof TransactionInstruction) {
+                        let intru3: TransactionInstruction | null = null;
+                        intru3 = result;
+                        transaction.add(intru3);
+                    }
+                    await finalTransaction(true, transaction, connection);
+                    alert(`You has been transfered to this target successful`);
+                }
+            } catch (e) {
+                console.log(`${e}`);
+                alert(e);
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    }, [input3, publicKey, endpoint, input2, programTarget, input, handleButtonLockTarget, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    const handleButtonTransferAsset = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
+        try {
+            let thatPubkey: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [toDataPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("client", "utf8"), targetKey.toBuffer()],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            const [fromDataPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("client", "utf8"), thatPubkey.toBuffer()],
                 new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
             );
             const connection = new Connection(endpoint, 'finalized');
-            if (programTarget) {
-                alert(`You locking to this target`);
-                let txIntru = await programTarget.methods
-                    .lockTarget(targetKey)
-                    .accounts({
-                        target: targetDataPda,
-                        signer: thatPubkey,
-                        systemProgram: SystemProgram.programId,
-                    })
-                    .instruction();
-                let transaction = new Transaction().add(txIntru);
-                await finalTransaction(true, transaction, connection);
-                alert(`You has been lock to this target successful`);
-            }
-        } catch (error) {
-            alert(error.message);
-        }
-    }, [input, publicKey, endpoint, programTarget, finalTransaction]);
-    const handleButtonTransferSFC = useCallback(async () => {
-        try {
-            let thatPubkey: any;
-            if (publicKey) {
-                thatPubkey = publicKey;
-            } else {
-                console.error('You not yet choose wallet');
-            }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-            );
-            let accountTarget: any;
-            let targetKey: any;
-            async function processAccountTarget() {
-                if (accountTarget !== undefined) {
-                    if (accountTarget.assetTarget !== input3 && input3 !== "") {
-                        targetKey = input3;
-                    } else {
-                        targetKey = accountTarget.assetTarget;
-                    }
-                    const connection = new Connection(endpoint, 'finalized');
-                    const tokenFiltSFC: TokenAccountsFilter = {
-                        mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
-                        programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-                    };
-                    const fromTokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFiltSFC);
-                    const toTokenAcc = await connection.getParsedTokenAccountsByOwner(targetKey, tokenFiltSFC);
-                    try {
-                        let amount = Number(input2).valueOf();
-                        let realamount = amount * LAMPORTS_PER_SOL;
-                        const amountBN = new BN(realamount);
-                        if (programTarget) {
-                            alert(`You transfering to this target`);
-                            let txIntru1 = await programTarget.methods
-                                .tranferToken(amountBN, true)
-                                .accounts({
-                                    token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
-                                    fromtoken: fromTokenAcc.value[0].pubkey,
-                                    totoken: toTokenAcc.value[0].pubkey,
-                                    signer: thatPubkey,
-                                })
-                                .instruction();
-                            let transaction = new Transaction().add(txIntru1);
-                            if (input !== "") {
-                                const result = await handleButtonUserMessageTargetLinkCall(targetKey);
-                                if (result instanceof TransactionInstruction) {
-                                    let intru2: TransactionInstruction | null = null;
-                                    intru2 = result;
-                                    transaction.add(intru2);
-                                }
-                            }
-                            await finalTransaction(true, transaction, connection);
-                            alert(`You has been transfered to this target successful`);
+            try {
+                let amount = Number(input2).valueOf();
+                const amountBN = new BN(amount);
+                if (programTarget) {
+                    alert(`You transfering to this target`);
+                    let txIntru1 = await programTarget.methods
+                        .tranferAsset(targetKey, amountBN)
+                        .accounts({
+                            fromclient: fromDataPda,
+                            toclient: toDataPda,
+                            signer: thatPubkey,
+                        })
+                        .instruction();
+                    let transaction = new Transaction().add(txIntru1);
+                    if (input !== "") {
+                        const result = await handleButtonUserMessageTargetLinkCall();
+                        if (result instanceof TransactionInstruction) {
+                            let intru2: TransactionInstruction | null = null;
+                            intru2 = result;
+                            transaction.add(intru2);
                         }
-                    } catch (e) {
-                        console.log(`${e}`);
-                        alert(e);
                     }
+                    const result = await handleButtonLockTarget(targetKey);
+                    if (result instanceof TransactionInstruction) {
+                        let intru3: TransactionInstruction | null = null;
+                        intru3 = result;
+                        transaction.add(intru3);
+                    }
+                    await finalTransaction(true, transaction, connection);
+                    alert(`You has been transfered to this target successful`);
                 }
-            }
-            if (programTarget) {
-                programTarget.account.userTarget.fetch(pda3)
-                    .then(target => {
-                        accountTarget = target;
-                        processAccountTarget();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
-            }
-
-        } catch (error) {
-            alert(error.message);
-        }
-    }, [publicKey, programTarget, input3, endpoint, input2, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
-    const handleButtonTransferLP = useCallback(async () => {
-        try {
-            let thatPubkey: any;
-            if (publicKey) {
-                thatPubkey = publicKey;
-            } else {
-                console.error('You not yet choose wallet');
-            }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-            );
-            let accountTarget: any;
-            let targetKey: any;
-            async function processAccountTarget() {
-                if (accountTarget !== undefined) {
-                    if (accountTarget.assetTarget !== input3 && input3 !== "") {
-                        targetKey = input3;
-                    } else {
-                        targetKey = accountTarget.assetTarget;
-                    }
-                    const connection = new Connection(endpoint, 'finalized');
-                    const tokenFiltSFC: TokenAccountsFilter = {
-                        mint: new PublicKey("8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He"),
-                        programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-                    };
-                    const fromTokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFiltSFC);
-                    const toTokenAcc = await connection.getParsedTokenAccountsByOwner(targetKey, tokenFiltSFC);
-                    try {
-                        let amount = Number(input2).valueOf();
-                        let realamount = amount * LAMPORTS_PER_SOL;
-                        const amountBN = new BN(realamount);
-                        if (programTarget) {
-                            alert(`You transfering to this target`);
-                            let txIntru1 = await programTarget.methods
-                                .tranferToken(amountBN, false)
-                                .accounts({
-                                    token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
-                                    fromtoken: fromTokenAcc.value[0].pubkey,
-                                    totoken: toTokenAcc.value[0].pubkey,
-                                    signer: thatPubkey,
-                                })
-                                .instruction();
-                            let transaction = new Transaction().add(txIntru1);
-                            if (input !== "") {
-                                const result = await handleButtonUserMessageTargetLinkCall(targetKey);
-                                if (result instanceof TransactionInstruction) {
-                                    let intru2: TransactionInstruction | null = null;
-                                    intru2 = result;
-                                    transaction.add(intru2);
-                                }
-                            }
-                            await finalTransaction(true, transaction, connection);
-                            alert(`You has been transfered to this target successful`);
-                        }
-                    } catch (e) {
-                        console.log(`${e}`);
-                        alert(e);
-                    }
-                }
-            }
-            if (programTarget) {
-                programTarget.account.userTarget.fetch(pda3)
-                    .then(target => {
-                        accountTarget = target;
-                        processAccountTarget();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
-            }
-
-        } catch (error) {
-            alert(error.message);
-        }
-    }, [publicKey, programTarget, input3, endpoint, input2, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
-    const handleButtonTransferAsset = useCallback(async () => {
-        try {
-            let thatPubkey: any;
-            if (publicKey) {
-                thatPubkey = publicKey;
-            } else {
-                console.error('You not yet choose wallet');
-            }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-            );
-            let accountTarget: any;
-            let targetKey: any;
-            async function processAccountTarget() {
-                if (accountTarget !== undefined) {
-                    if (accountTarget.assetTarget !== input3 && input3 !== "") {
-                        targetKey = input3;
-                    } else {
-                        targetKey = accountTarget.assetTarget;
-                    }
-                    const [toDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("client", "utf8"), targetKey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const [targetDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const [fromDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("client", "utf8"), thatPubkey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const connection = new Connection(endpoint, 'finalized');
-                    try {
-                        let amount = Number(input2).valueOf();
-                        const amountBN = new BN(amount);
-                        if (programTarget) {
-                            alert(`You transfering to this target`);
-                            let txIntru1 = await programTarget.methods
-                                .tranferAsset(amountBN)
-                                .accounts({
-                                    target: targetDataPda,
-                                    fromclient: fromDataPda,
-                                    toclient: toDataPda,
-                                    signer: thatPubkey,
-                                })
-                                .instruction();
-                            let transaction = new Transaction().add(txIntru1);
-                            if (input !== "") {
-                                const result = await handleButtonUserMessageTargetLinkCall(targetKey);
-                                if (result instanceof TransactionInstruction) {
-                                    let intru2: TransactionInstruction | null = null;
-                                    intru2 = result;
-                                    transaction.add(intru2);
-                                }
-                            }
-                            await finalTransaction(true, transaction, connection);
-                            alert(`You has been transfered to this target successful`);
-                        }
-                    } catch (e) {
-                        console.log(`${e}`);
-                        alert(e);
-                    }
-                }
-            }
-            if (programTarget) {
-                programTarget.account.userTarget.fetch(pda3)
-                    .then(target => {
-                        accountTarget = target;
-                        processAccountTarget();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
+            } catch (e) {
+                console.log(`${e}`);
+                alert(e);
             }
         } catch (error) {
             alert(error.message);
         }
-    }, [publicKey, programTarget, input3, endpoint, input2, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    }, [input3, publicKey, endpoint, input2, programTarget, input, handleButtonLockTarget, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonDepositAsset = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -2828,76 +2754,58 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             } else {
                 console.error('You not yet choose wallet');
             }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
+            const [playerDataPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("client", "utf8"), targetKey.toBuffer()],
                 new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
             );
-            let accountTarget: any;
-            let targetKey: any;
-            async function processAccountTarget() {
-                if (accountTarget !== undefined) {
-                    if (accountTarget.assetTarget !== input3 && input3 !== "") {
-                        targetKey = input3;
-                    } else {
-                        targetKey = accountTarget.assetTarget;
-                    }
-                    const [playerDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("client", "utf8"), targetKey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const connection = new Connection(endpoint, 'finalized');
-                    const [targetDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    try {
-                        let amount = Number(input2).valueOf();
-                        const amountBN = new BN(amount);
-                        if (programTarget) {
-                            alert(`You depositing to this target`);
-                            let txIntru1 = await programTarget.methods
-                                .depositAsset(amountBN)
-                                .accounts({
-                                    target: targetDataPda,
-                                    client: playerDataPda,
-                                    signer: thatPubkey,
-                                })
-                                .instruction();
-                            let transaction = new Transaction().add(txIntru1);
-                            if (input !== "") {
-                                const result = await handleButtonUserMessageTargetLinkCall(targetKey);
-                                if (result instanceof TransactionInstruction) {
-                                    let intru2: TransactionInstruction | null = null;
-                                    intru2 = result;
-                                    transaction.add(intru2);
-                                }
-                            }
-                            await finalTransaction(true, transaction, connection);
-                            alert(`You has been deposited to this target successful`);
+            const connection = new Connection(endpoint, 'finalized');
+            try {
+                let amount = Number(input2).valueOf();
+                const amountBN = new BN(amount);
+                if (programTarget) {
+                    alert(`You depositing to this target`);
+                    let txIntru1 = await programTarget.methods
+                        .depositAsset(targetKey, amountBN)
+                        .accounts({
+                            client: playerDataPda,
+                            signer: thatPubkey,
+                        })
+                        .instruction();
+                    let transaction = new Transaction().add(txIntru1);
+                    if (input !== "") {
+                        const result = await handleButtonUserMessageTargetLinkCall();
+                        if (result instanceof TransactionInstruction) {
+                            let intru2: TransactionInstruction | null = null;
+                            intru2 = result;
+                            transaction.add(intru2);
                         }
-                    } catch (e) {
-                        console.log(`${e}`);
-                        alert(e);
                     }
+                    const result = await handleButtonLockTarget(targetKey);
+                    if (result instanceof TransactionInstruction) {
+                        let intru3: TransactionInstruction | null = null;
+                        intru3 = result;
+                        transaction.add(intru3);
+                    }
+                    await finalTransaction(true, transaction, connection);
+                    alert(`You has been deposited to this target successful`);
                 }
+            } catch (e) {
+                console.log(`${e}`);
+                alert(e);
             }
-            if (programTarget) {
-                programTarget.account.userTarget.fetch(pda3)
-                    .then(target => {
-                        accountTarget = target;
-                        processAccountTarget();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
-            }
-
         } catch (error) {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, programTarget, input3, endpoint, input2, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    }, [input3, publicKey, endpoint, input2, programTarget, input, handleButtonLockTarget, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonWithdrawAsset = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -2905,73 +2813,49 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             } else {
                 console.error('You not yet choose wallet');
             }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
+            const [playerDataPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("client", "utf8"), targetKey.toBuffer()],
                 new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
             );
-            let accountTarget: any;
-            let targetKey: any;
-            async function processAccountTarget() {
-                if (accountTarget !== undefined) {
-                    if (accountTarget.assetTarget !== input3 && input3 !== "") {
-                        targetKey = input3;
-                    } else {
-                        targetKey = accountTarget.assetTarget;
-                    }
-                    const [playerDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("client", "utf8"), targetKey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const [targetDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const connection = new Connection(endpoint, 'finalized');
-                    try {
-                        let amount: number = Number(input2).valueOf();
-                        const amountBN = new BN(amount);
-                        if (programTarget) {
-                            alert(`You withdrawing from this target`);
-                            let txIntru1 = await programTarget.methods
-                                .withdrawAsset(amountBN)
-                                .accounts({
-                                    target: targetDataPda,
-                                    client: playerDataPda,
-                                    signer: thatPubkey,
-                                })
-                                .instruction();
-                            let transaction = new Transaction().add(txIntru1);
-                            if (input !== "") {
-                                const result = await handleButtonUserMessageTargetLinkCall(targetKey);
-                                if (result instanceof TransactionInstruction) {
-                                    let intru2: TransactionInstruction | null = null;
-                                    intru2 = result;
-                                    transaction.add(intru2);
-                                }
-                            }
-                            await finalTransaction(true, transaction, connection);
-                            alert(`You has been withdrawed from this target`);
+            const connection = new Connection(endpoint, 'finalized');
+            try {
+                let amount: number = Number(input2).valueOf();
+                const amountBN = new BN(amount);
+                if (programTarget) {
+                    alert(`You withdrawing from this target`);
+                    let txIntru1 = await programTarget.methods
+                        .withdrawAsset(targetKey, amountBN)
+                        .accounts({
+                            client: playerDataPda,
+                            signer: thatPubkey,
+                        })
+                        .instruction();
+                    let transaction = new Transaction().add(txIntru1);
+                    if (input !== "") {
+                        const result = await handleButtonUserMessageTargetLinkCall();
+                        if (result instanceof TransactionInstruction) {
+                            let intru2: TransactionInstruction | null = null;
+                            intru2 = result;
+                            transaction.add(intru2);
                         }
-                    } catch (e) {
-                        console.log(`${e}`);
-                        alert(e);
                     }
+                    const result = await handleButtonLockTarget(targetKey);
+                    if (result instanceof TransactionInstruction) {
+                        let intru3: TransactionInstruction | null = null;
+                        intru3 = result;
+                        transaction.add(intru3);
+                    }
+                    await finalTransaction(true, transaction, connection);
+                    alert(`You has been withdrawed from this target`);
                 }
-            }
-            if (programTarget) {
-                programTarget.account.userTarget.fetch(pda3)
-                    .then(target => {
-                        accountTarget = target;
-                        processAccountTarget();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
+            } catch (e) {
+                console.log(`${e}`);
+                alert(e);
             }
         } catch (error) {
             alert(error.message);
         }
-    }, [publicKey, programTarget, input3, endpoint, input2, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    }, [input3, publicKey, endpoint, input2, programTarget, input, handleButtonLockTarget, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonTributeAsset = useCallback(async () => {
         try {
             let mintString = "4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ";
@@ -3175,6 +3059,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         }
     }, [publicKey, endpoint, wallet, input2, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonSummonTargetNew = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             let mintString = "4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ";
             let mint = new PublicKey(mintString);
@@ -3230,12 +3121,18 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         transaction.add(intru2);
                     }
                     if (input !== "") {
-                        const result = await handleButtonUserMessageTargetLinkCall(new PublicKey(String(targetAddress).valueOf()));
+                        const result = await handleButtonUserMessageTargetLinkCall();
                         if (result instanceof TransactionInstruction) {
                             let intru3: TransactionInstruction | null = null;
                             intru3 = result;
                             transaction.add(intru3);
                         }
+                    }
+                    const result2 = await handleButtonLockTarget(targetKey);
+                    if (result2 instanceof TransactionInstruction) {
+                        let intru4: TransactionInstruction | null = null;
+                        intru4 = result2;
+                        transaction.add(intru4);
                     }
                     await finalTransaction(true, transaction, connection);
                     alert(`You summoned your asset from the Vault successful`);
@@ -3249,7 +3146,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.error("Error fetching outer IDL: ", error);
             alert(error.message);
         }
-    }, [publicKey, endpoint, wallet, input2, programTarget, handleButtonTransferAssetLinkCall, input, finalTransaction, handleButtonUserMessageTargetLinkCall, targetAddress]);
+    }, [input3, publicKey, endpoint, wallet, input2, programTarget, handleButtonTransferAssetLinkCall, input, handleButtonLockTarget, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonSummonAssetLinkCall = useCallback(async (amountLinkCall: number) => {
         try {
             let mintString = "4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ";
@@ -3304,6 +3201,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         }
     }, [publicKey, endpoint, wallet, programTarget]);
     const handleButtonTributeTarget = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -3311,96 +3215,83 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             } else {
                 console.error('You not yet choose wallet');
             }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
+            let mintString = "4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ";
+            let mint = new PublicKey(mintString);
+            const [vaultDataPda, bump1] = PublicKey.findProgramAddressSync(
+                [Buffer.from("vault")],
                 new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
             );
-            let accountTarget: any;
-            let targetKey: any;
-            async function processAccountTarget() {
-                if (accountTarget !== undefined) {
-                    if (accountTarget.assetTarget !== input3 && input3 !== "") {
-                        targetKey = input3;
-                    } else {
-                        targetKey = accountTarget.assetTarget;
-                    }
-                    let mintString = "4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ";
-                    let mint = new PublicKey(mintString);
-                    const [vaultDataPda, bump1] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("vault")],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const [donatorDataPda] = PublicKey.findProgramAddressSync(
-                        [Buffer.from("client", "utf8"), thatPubkey.toBuffer()],
-                        new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    );
-                    const connection = new Connection(endpoint, 'finalized');
-                    let thatWallet: any;
-                    if (wallet && wallet.wallet) {
-                        thatWallet = wallet
-                    } else {
-                        console.error('You not yet choose wallet');
-                    }
-                    const tokenAccount = await getOrCreateAssociatedTokenAccount(
-                        connection,
-                        thatWallet,
-                        mint,
-                        targetKey
-                    )
-                    try {
-                        let amount: number = Number(input2).valueOf();
-                        let realamount = amount * LAMPORTS_PER_SOL;
-                        const amountBN = new BN(realamount);
-                        const bumpBN = new BN(bump1);
-                        if (programTarget) {
-                            alert(`You tributing your asset for this target`);
-                            let txIntru1 = await programTarget.methods
-                                .tributeAsset(amountBN, bumpBN)
-                                .accounts({
-                                    mint: mint,
-                                    tk: tokenAccount.address,
-                                    donator: donatorDataPda,
-                                    vault: vaultDataPda,
-                                    signer: thatPubkey,
-                                    token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
-                                    authority: vaultDataPda
-                                })
-                                .instruction();
-                            let transaction = new Transaction().add(txIntru1);
-                            if (input !== "") {
-                                const result = await handleButtonUserMessageTargetLinkCall(targetKey);
-                                if (result instanceof TransactionInstruction) {
-                                    let intru2: TransactionInstruction | null = null;
-                                    intru2 = result;
-                                    transaction.add(intru2);
-                                }
-                            }
-                            await finalTransaction(true, transaction, connection);
-                            alert(`You has been tributed your asset for this target successful`);
+            const [donatorDataPda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("client", "utf8"), thatPubkey.toBuffer()],
+                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            );
+            const connection = new Connection(endpoint, 'finalized');
+            let thatWallet: any;
+            if (wallet && wallet.wallet) {
+                thatWallet = wallet
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const tokenAccount = await getOrCreateAssociatedTokenAccount(
+                connection,
+                thatWallet,
+                mint,
+                targetKey
+            )
+            try {
+                let amount: number = Number(input2).valueOf();
+                let realamount = amount * LAMPORTS_PER_SOL;
+                const amountBN = new BN(realamount);
+                const bumpBN = new BN(bump1);
+                if (programTarget) {
+                    alert(`You tributing your asset for this target`);
+                    let txIntru1 = await programTarget.methods
+                        .tributeAsset(amountBN, bumpBN)
+                        .accounts({
+                            mint: mint,
+                            tk: tokenAccount.address,
+                            donator: donatorDataPda,
+                            vault: vaultDataPda,
+                            signer: thatPubkey,
+                            token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+                            authority: vaultDataPda
+                        })
+                        .instruction();
+                    let transaction = new Transaction().add(txIntru1);
+                    if (input !== "") {
+                        const result = await handleButtonUserMessageTargetLinkCall();
+                        if (result instanceof TransactionInstruction) {
+                            let intru2: TransactionInstruction | null = null;
+                            intru2 = result;
+                            transaction.add(intru2);
                         }
-                    } catch (e) {
-                        console.log(`${e}`);
-                        alert(e);
                     }
+                    const result = await handleButtonLockTarget(targetKey);
+                    if (result instanceof TransactionInstruction) {
+                        let intru3: TransactionInstruction | null = null;
+                        intru3 = result;
+                        transaction.add(intru3);
+                    }
+                    await finalTransaction(true, transaction, connection);
+                    alert(`You has been tributed your asset for this target successful`);
                 }
+            } catch (e) {
+                console.log(`${e}`);
+                alert(e);
             }
-            if (programTarget) {
-                programTarget.account.userTarget.fetch(pda3)
-                    .then(target => {
-                        accountTarget = target;
-                        processAccountTarget();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
-            }
-
         } catch (error) {
             console.error("Error fetching outer IDL: ", error);
             alert(error.message);
         }
-    }, [publicKey, programTarget, input3, endpoint, wallet, input2, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    }, [input3, publicKey, endpoint, wallet, input2, programTarget, input, handleButtonLockTarget, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonOpenTokenTarget = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -3408,68 +3299,55 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             } else {
                 console.error('You not yet choose wallet');
             }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            let mintString = "4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ";
+            let mint = new PublicKey(mintString);
+            const connection = new Connection(endpoint, 'finalized');
+            const tokenAccount = getAssociatedTokenAddressSync(
+                mint,
+                targetKey
             );
-            let accountTarget: any;
-            let targetKey: any;
-            async function processAccountTarget() {
-                if (accountTarget !== undefined) {
-                    if (accountTarget.assetTarget !== input3 && input3 !== "") {
-                        targetKey = input3;
-                    } else {
-                        targetKey = accountTarget.assetTarget;
-                    }
-                    let mintString = "4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ";
-                    let mint = new PublicKey(mintString);
-                    const connection = new Connection(endpoint, 'finalized');
-                    const tokenAccount = getAssociatedTokenAddressSync(
-                        mint,
-                        targetKey
-                    );
-                    const ataInfo = await connection.getAccountInfo(tokenAccount);
-                    if (ataInfo === null) {
-                        const ataInstruction = createAssociatedTokenAccountInstruction(
-                            thatPubkey,
-                            tokenAccount,
-                            targetKey,
-                            mint
-                        );
-                        const transaction = new Transaction().add(ataInstruction);
-                        if (input !== "") {
-                            const result = await handleButtonUserMessageTargetLinkCall(targetKey);
-                            if (result instanceof TransactionInstruction) {
-                                let intru2: TransactionInstruction | null = null;
-                                intru2 = result;
-                                transaction.add(intru2);
-                            }
-                        }
-                        alert(`Token account opening`);
-                        await finalTransaction(true, transaction, connection);
-                        alert(`Token account opened successful`);
-                    } else {
-                        alert(`Token account already exists`);
+            const ataInfo = await connection.getAccountInfo(tokenAccount);
+            if (ataInfo === null) {
+                const ataInstruction = createAssociatedTokenAccountInstruction(
+                    thatPubkey,
+                    tokenAccount,
+                    targetKey,
+                    mint
+                );
+                const transaction = new Transaction().add(ataInstruction);
+                if (input !== "") {
+                    const result = await handleButtonUserMessageTargetLinkCall();
+                    if (result instanceof TransactionInstruction) {
+                        let intru2: TransactionInstruction | null = null;
+                        intru2 = result;
+                        transaction.add(intru2);
                     }
                 }
+                const result = await handleButtonLockTarget(targetKey);
+                if (result instanceof TransactionInstruction) {
+                    let intru3: TransactionInstruction | null = null;
+                    intru3 = result;
+                    transaction.add(intru3);
+                }
+                alert(`Token account opening`);
+                await finalTransaction(true, transaction, connection);
+                alert(`Token account opened successful`);
+            } else {
+                alert(`Token account already exists`);
             }
-            if (programTarget) {
-                programTarget.account.userTarget.fetch(pda3)
-                    .then(target => {
-                        accountTarget = target;
-                        processAccountTarget();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
-            }
-
         } catch (error) {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, programTarget, input3, endpoint, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    }, [input3, publicKey, endpoint, input, handleButtonLockTarget, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonOpenLPTarget = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -3477,67 +3355,47 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             } else {
                 console.error('You not yet choose wallet');
             }
-            const [pda3] = PublicKey.findProgramAddressSync(
-                [Buffer.from("target", "utf8"), thatPubkey.toBuffer()],
-                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+            let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
+            let mint = new PublicKey(mintString);
+            const connection = new Connection(endpoint, 'finalized');
+            const tokenAccount = getAssociatedTokenAddressSync(
+                mint,
+                targetKey
             );
-            let accountTarget: any;
-            let targetKey: any;
-            async function processAccountTarget() {
-                if (accountTarget !== undefined) {
-                    if (accountTarget.assetTarget !== input3 && input3 !== "") {
-                        targetKey = input3;
-                    } else {
-                        targetKey = accountTarget.assetTarget;
-                    }
-                    let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
-                    let mint = new PublicKey(mintString);
-                    const connection = new Connection(endpoint, 'finalized');
-                    const tokenAccount = getAssociatedTokenAddressSync(
-                        mint,
-                        targetKey
-                    );
-                    const ataInfo = await connection.getAccountInfo(tokenAccount);
-                    if (ataInfo === null) {
-                        const ataInstruction = createAssociatedTokenAccountInstruction(
-                            thatPubkey,
-                            tokenAccount,
-                            targetKey,
-                            mint
-                        );
-                        const transaction = new Transaction().add(ataInstruction);
-                        if (input !== "") {
-                            const result = await handleButtonUserMessageTargetLinkCall(targetKey);
-                            if (result instanceof TransactionInstruction) {
-                                let intru2: TransactionInstruction | null = null;
-                                intru2 = result;
-                                transaction.add(intru2);
-                            }
-                        }
-                        alert(`LP token account opening`);
-                        await finalTransaction(true, transaction, connection);
-                        alert(`LP token account opened successful`);
-                    } else {
-                        alert(`LP token account already exists`);
+            const ataInfo = await connection.getAccountInfo(tokenAccount);
+            if (ataInfo === null) {
+                const ataInstruction = createAssociatedTokenAccountInstruction(
+                    thatPubkey,
+                    tokenAccount,
+                    targetKey,
+                    mint
+                );
+                const transaction = new Transaction().add(ataInstruction);
+                if (input !== "") {
+                    const result = await handleButtonUserMessageTargetLinkCall();
+                    if (result instanceof TransactionInstruction) {
+                        let intru2: TransactionInstruction | null = null;
+                        intru2 = result;
+                        transaction.add(intru2);
                     }
                 }
+                const result = await handleButtonLockTarget(targetKey);
+                if (result instanceof TransactionInstruction) {
+                    let intru3: TransactionInstruction | null = null;
+                    intru3 = result;
+                    transaction.add(intru3);
+                }
+                alert(`LP token account opening`);
+                await finalTransaction(true, transaction, connection);
+                alert(`LP token account opened successful`);
+            } else {
+                alert(`LP token account already exists`);
             }
-            if (programTarget) {
-                programTarget.account.userTarget.fetch(pda3)
-                    .then(target => {
-                        accountTarget = target;
-                        processAccountTarget();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching account target:', error);
-                    });
-            }
-
         } catch (error) {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, programTarget, input3, endpoint, input, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    }, [input3, publicKey, endpoint, input, handleButtonLockTarget, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonBuySolLinkCall = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -3577,6 +3435,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             })
     }, [endpoint, finalTransaction, handleButtonBuySolLC, handleButtonSimulateBuy, handleButtonTributeAssetLinkCall, handleButtonUserMessageLinkCall, input]);
     const handleButtonBuySolLinkCallTarget = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
         let intru3: TransactionInstruction | null = null;
@@ -3606,12 +3471,18 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     const connection = new Connection(endpoint, 'finalized');
                     const transaction = new Transaction().add(intru1).add(intru2).add(intru3);
                     if (input !== "") {
-                        const result = await handleButtonUserMessageTargetLinkCall(new PublicKey(String(targetAddress).valueOf()));
+                        const result = await handleButtonUserMessageTargetLinkCall();
                         if (result instanceof TransactionInstruction) {
                             let intru4: TransactionInstruction | null = null;
                             intru4 = result;
                             transaction.add(intru4);
                         }
+                    }
+                    const result = await handleButtonLockTarget(targetKey);
+                    if (result instanceof TransactionInstruction) {
+                        let intru5: TransactionInstruction | null = null;
+                        intru5 = result;
+                        transaction.add(intru5);
                     }
                     alert(`You buying your Dev Sol by VND to the vault successful`);
                     await finalTransaction(true, transaction, connection);
@@ -3620,7 +3491,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     console.error('Error: TransactionInstructions not found');
                 }
             })
-    }, [endpoint, finalTransaction, handleButtonBuySolLC, handleButtonSimulateBuy, handleButtonTransferSolLinkCall, handleButtonTributeAssetLinkCall, handleButtonUserMessageTargetLinkCall, input, input2, targetAddress]);
+    }, [endpoint, finalTransaction, handleButtonBuySolLC, handleButtonLockTarget, handleButtonSimulateBuy, handleButtonTransferSolLinkCall, handleButtonTributeAssetLinkCall, handleButtonUserMessageTargetLinkCall, input, input2, input3]);
     const handleButtonSellSolLinkCall = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -3660,6 +3531,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             })
     }, [endpoint, finalTransaction, handleButtonSellSolLC, handleButtonSimulateSell, handleButtonSummonAssetLinkCall, handleButtonUserMessageLinkCall, input]);
     const handleButtonSellSolLinkCallTarget = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
         let intru3: TransactionInstruction | null = null;
@@ -3690,12 +3568,18 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     const connection = new Connection(endpoint, 'finalized');
                     const transaction = new Transaction().add(intru1).add(intru2).add(intru3);
                     if (input !== "") {
-                        const result = await await handleButtonUserMessageTargetLinkCall(new PublicKey(String(targetAddress).valueOf()));
+                        const result = await handleButtonUserMessageTargetLinkCall();
                         if (result instanceof TransactionInstruction) {
                             let intru4: TransactionInstruction | null = null;
                             intru4 = result;
                             transaction.add(intru4);
                         }
+                    }
+                    const result = await handleButtonLockTarget(targetKey);
+                    if (result instanceof TransactionInstruction) {
+                        let intru5: TransactionInstruction | null = null;
+                        intru5 = result;
+                        transaction.add(intru5);
                     }
                     alert(`You selling your Dev Sol for VND to the vault successful`);
                     await finalTransaction(true, transaction, connection);
@@ -3704,7 +3588,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     console.error('Error: TransactionInstructions not found');
                 }
             })
-    }, [endpoint, finalTransaction, handleButtonSellSolLC, handleButtonSimulateSell, handleButtonSummonAssetLinkCall, handleButtonTransferAssetLinkCall, handleButtonUserMessageTargetLinkCall, input, targetAddress]);
+    }, [endpoint, finalTransaction, handleButtonLockTarget, handleButtonSellSolLC, handleButtonSimulateSell, handleButtonSummonAssetLinkCall, handleButtonTransferAssetLinkCall, handleButtonUserMessageTargetLinkCall, input, input3]);
     const handleButtonMintLPLinkCall = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -3744,6 +3628,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             })
     }, [endpoint, finalTransaction, handleButtonSimulateMintLP, handleButtonSummonLPLC, handleButtonTributeAssetLinkCall, handleButtonUserMessageLinkCall, input]);
     const handleButtonMintLPLinkCallTarget = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
         let intru3: TransactionInstruction | null = null;
@@ -3773,12 +3664,18 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     const connection = new Connection(endpoint, 'finalized');
                     const transaction = new Transaction().add(intru1).add(intru2).add(intru3);
                     if (input !== "") {
-                        const result = await handleButtonUserMessageTargetLinkCall(new PublicKey(String(targetAddress).valueOf()));
+                        const result = await handleButtonUserMessageTargetLinkCall();
                         if (result instanceof TransactionInstruction) {
                             let intru4: TransactionInstruction | null = null;
                             intru4 = result;
                             transaction.add(intru4);
                         }
+                    }
+                    const result = await handleButtonLockTarget(targetKey);
+                    if (result instanceof TransactionInstruction) {
+                        let intru5: TransactionInstruction | null = null;
+                        intru5 = result;
+                        transaction.add(intru5);
                     }
                     alert(`You minting your LP by VND from the vault successful`);
                     await finalTransaction(true, transaction, connection);
@@ -3787,7 +3684,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     console.error('Error: TransactionInstructions not found');
                 }
             })
-    }, [endpoint, finalTransaction, handleButtonSimulateMintLP, handleButtonSummonLPLC, handleButtonTransferLPLinkCall, handleButtonTributeAssetLinkCall, handleButtonUserMessageTargetLinkCall, input, input2, targetAddress]);
+    }, [endpoint, finalTransaction, handleButtonLockTarget, handleButtonSimulateMintLP, handleButtonSummonLPLC, handleButtonTransferLPLinkCall, handleButtonTributeAssetLinkCall, handleButtonUserMessageTargetLinkCall, input, input2, input3]);
     const handleButtonBurnLPLinkCall = useCallback(async () => {
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
@@ -3827,6 +3724,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             })
     }, [endpoint, finalTransaction, handleButtonSimulateBurnLP, handleButtonSummonAssetLinkCall, handleButtonTributeLPLC, handleButtonUserMessageLinkCall, input]);
     const handleButtonBurnLPLinkCallTarget = useCallback(async () => {
+        let targetKey: any;
+        if (input3 === "") {
+            return;
+        } else {
+            let input3String = input3;
+            targetKey = new PublicKey(input3String);
+        }
         let intru1: TransactionInstruction | null = null;
         let intru2: TransactionInstruction | null = null;
         let intru3: TransactionInstruction | null = null;
@@ -3864,12 +3768,18 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     const connection = new Connection(endpoint, 'finalized');
                     const transaction = new Transaction().add(intru1).add(intru2).add(intru3).add(intru4);
                     if (input !== "") {
-                        const result = await handleButtonUserMessageTargetLinkCall(new PublicKey(String(targetAddress).valueOf()));
+                        const result = await handleButtonUserMessageTargetLinkCall();
                         if (result instanceof TransactionInstruction) {
                             let intru5: TransactionInstruction | null = null;
                             intru5 = result;
                             transaction.add(intru5);
                         }
+                    }
+                    const result = await handleButtonLockTarget(targetKey);
+                    if (result instanceof TransactionInstruction) {
+                        let intru5: TransactionInstruction | null = null;
+                        intru5 = result;
+                        transaction.add(intru5);
                     }
                     alert(`You burning your LP for VND from the vault successful`);
                     await finalTransaction(true, transaction, connection);
@@ -3878,30 +3788,34 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     console.error('Error: TransactionInstructions not found');
                 }
             })
-    }, [endpoint, finalTransaction, handleButtonSimulateBurnLP, handleButtonSimulateBurnLPPlus, handleButtonSummonAssetLinkCall, handleButtonTransferAssetLinkCall, handleButtonTransferSolLinkCall, handleButtonTributeLPLC, handleButtonUserMessageTargetLinkCall, input, targetAddress]);
+    }, [endpoint, finalTransaction, handleButtonLockTarget, handleButtonSimulateBurnLP, handleButtonSimulateBurnLPPlus, handleButtonSummonAssetLinkCall, handleButtonTransferAssetLinkCall, handleButtonTransferSolLinkCall, handleButtonTributeLPLC, handleButtonUserMessageTargetLinkCall, input, input3]);
     return (
         <>
             <div>
-                <button onClick={switchNonLockTarget} className={Boolean(isNonLockTarget) ? "buttonPress" : ""} >Non Lock</button>
-                <button onClick={switchLockTarget} className={(Boolean(isLockTarget)) ? "buttonPress" : ""}>Use Lock</button>
+                <button onClick={switchNonLockTarget} className={Boolean(isNonLockTarget) ? "buttonPress" : ""} >Non Flash Target</button>
+                <button onClick={switchLockTarget} className={(Boolean(isLockTarget)) ? "buttonPress" : ""}>Use Flash Target</button>
                 <input type="text" value={input} onChange={handleInputChange} size={50} />
                 <input type="text" value={input3} onChange={handleInputChange3} size={50} />
                 {isLockTarget && isNonUseVND && <button onClick={handleButtonClick}>Watch Target</button>}
-                {isLockTarget && isNonUseVND && <button onClick={handleButtonLockTarget}>Lock Target</button>}
+                {/*isLockTarget && isNonUseVND && <button onClick={handleButtonLockTarget}>Lock Target</button>*/}
                 {isNonLockTarget && isNonUseVND && <button onClick={fetchBalance}>Watch Mime</button>}
                 {isLockTarget && isNonUseVND && <button onClick={handleButtonTransferAsset}>Transfer VND</button>}
-                {isLockTarget && isUseVND && <button onClick={handleButtonDepositAsset}>Deposit VND</button>}
-                {isLockTarget && isUseVND && <button onClick={handleButtonWithdrawAsset}>Withdraw VND</button>}
-                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonOpenTokenAcc}>Open SFC Acc</button>}
-                {isLockTarget && isNonUseVND && <button onClick={handleButtonTributeTarget}>Mint SFC</button>}
-                {isLockTarget && isNonUseVND && <button onClick={handleButtonSummonTargetNew}>Burn SFC</button>}
+                {isLockTarget && isUseVND && <button onClick={handleButtonTributeTarget}>Mint SFC - VND</button>}
+                {isLockTarget && isUseVND && <button onClick={handleButtonSummonTargetNew}>Burn SFC - VND</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonOpenAssetAcc}>Open VND Acc</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonCloseAssetAcc}>Close VND Acc</button>}
+                {isNonLockTarget && isUseVND && <button onClick={handleButtonTributeAsset}>Mint SFC - VND</button>}
+                {isNonLockTarget && isUseVND && <button onClick={handleButtonSummonAsset}>Burn SFC - VND</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonChangeName}>Change Name</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonUserMessage}>User Message</button>}
+                {isLockTarget && isNonUseVND && <button onClick={handleButtonOpenTokenTarget}>Open SFC - VND Acc</button>}
                 <a href={solanaExplorer?.toString()} target="_blank" rel="noopener noreferrer">
                     <button>
                         Solana Explorer
                     </button>
                 </a>
                 {/*isNonLockTarget && isNonUseVND && <button onClick={handleButtonTributeSol}>Tribute Dev Sol</button>*/}
-                {/*isNonLockTarget && isNonUseVND && <button onClick={handleButtonSummonSol}>Summon Dev Sol</button>*/}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonSummonSol}>Summon Dev Sol</button>}
                 {isNonLockTarget && isNonUseVND && <button onClick={handleButtonBuySol}>Buy Dev Sol</button>}
                 {isNonLockTarget && isNonUseVND && <button onClick={handleButtonSellSol}>Sell Dev Sol</button>}
                 {isNonLockTarget && isNonUseVND && <button onClick={handleButtonSummonLP}>Mint LP Token</button>}
@@ -3914,30 +3828,26 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 {isLockTarget && isUseVND && <button onClick={handleButtonSellSolLinkCallTarget}>Sell Dev Sol</button>}
             </div>
             <div>
-                <button onClick={switchNonUseVND} className={Boolean(isNonUseVND) ? "buttonPress" : ""}>Non VND</button>
-                <button onClick={switchUseVND} className={Boolean(isUseVND) ? "buttonPress" : ""}>Use VND</button>
+                <button onClick={switchNonUseVND} className={Boolean(isNonUseVND) ? "buttonPress" : ""}>Non VND Acc</button>
+                <button onClick={switchUseVND} className={Boolean(isUseVND) ? "buttonPress" : ""}>Use VND Acc</button>
                 <input type="text" value={input2} onChange={handleInputChange2} size={50} />
                 <input type="text" value={input4} onChange={handleInputChange4} size={50} />
-                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonOpenAssetAcc}>Open VND Acc</button>}
-                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonCloseAssetAcc}>Close VND Acc</button>}
-                {isNonLockTarget && isUseVND && <button onClick={handleButtonTributeAsset}>Mint SFC</button>}
-                {isNonLockTarget && isUseVND && <button onClick={handleButtonSummonAsset}>Burn SFC</button>}
-                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonChangeName}>Change Name</button>}
-                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonUserMessage}>User Message</button>}
-                {isLockTarget && isNonUseVND && <button onClick={handleButtonOpenTokenTarget}>Open SFC - VND Acc</button>}
+                {isLockTarget && isUseVND && <button onClick={handleButtonDepositAsset}>Deposit VND</button>}
+                {isLockTarget && isUseVND && <button onClick={handleButtonWithdrawAsset}>Withdraw VND</button>}
+                {isLockTarget && isNonUseVND && <button onClick={handleButtonChangeNameTarget}>Change Name</button>}
+                {isLockTarget && isNonUseVND && <button onClick={handleButtonUserMessageTarget}>User Message</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonTributeStable}>Tribute Stable</button>}
+                {/*isNonLockTarget && isNonUseVND && <button onClick={handleButtonSummonStable}>Summon Stable</button>*/}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonSimulateBuy}>Simulate Buy Sol</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonSimulateSell}>Simulate Sell Sol</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonSimulateMintLP}>Simulate Mint LP</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonSimulateBurnLP}>Simulate Burn LP</button>}
                 <a href={solScan?.toString()} target="_blank" rel="noopener noreferrer">
                     <button>
                         Solscan Explorer
                     </button>
                 </a>
-                {isLockTarget && isNonUseVND && <button onClick={handleButtonChangeNameTarget}>Change Name</button>}
-                {isLockTarget && isNonUseVND && <button onClick={handleButtonUserMessageTarget}>User Message</button>}
-                {/*isNonLockTarget && isNonUseVND &&<button onClick={handleButtonTributeStable}>Tribute Stable</button>*/}
-                {/*isNonLockTarget && isNonUseVND &&<button onClick={handleButtonSummonStable}>Summon Stable</button>*/}
-                {/*isNonLockTarget && isNonUseVND &&<button onClick={handleButtonSimulateBuy}>Simulate Buy Sol</button>*/}
-                {/*isNonLockTarget && isNonUseVND &&<button onClick={handleButtonSimulateSell}>Simulate Sell Sol</button>*/}
-                {/*isNonLockTarget && isNonUseVND &&<button onClick={handleButtonSimulateMintLP}>Simulate Mint LP</button>*/}
-                {/*isNonLockTarget && isNonUseVND &&<button onClick={handleButtonSimulateBurnLP}>Simulate Burn LP</button>*/}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonOpenTokenAcc}>Open SFC - VND Acc</button>}
                 {isNonLockTarget && isNonUseVND && <button onClick={handleButtonOpenLPAcc}>Open LP Token Acc</button>}
                 {isLockTarget && isNonUseVND && <button onClick={handleButtonOpenLPTarget}>Open LP Token Acc</button>}
                 {isLockTarget && isNonUseVND && <button onClick={handleButtonTransferSFC}>Transfer SFC - VND</button>}
@@ -3952,7 +3862,6 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             {isNonTarget && <div className="wallet-info">
                 <div>Wallet Address: {walletAddress}</div>
                 <div>Account Name: {accountName}</div>
-                <div>Target Address: {targetAddress}</div>
                 <div>Wallet Balance: {walletBalance} Dev SOL</div>
                 <div>Wallet LP Token: {walletLPToken} LPSFC</div>
                 <div>Wallet Stable Coin: {walletStableCoin} SFC - VND</div>
@@ -3968,11 +3877,16 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     <img src="https://i.ibb.co/vxRnDKx/SFC-VND.jpg" alt="SFC - VND Logo" title='SFC - VND Logo' width="100" height="100" />
                     <img src="https://i.ibb.co/wMRXC4M/LP-Token-Logo.webp" alt="LPSFC Logo" title='LPSFC Logo' width="100" height="100" />
                 </div>
+                <div>1st Target Address: {targetAddress0}</div>
+                <div>2nd Target Address: {targetAddress1}</div>
+                <div>3rt Target Address: {targetAddress2}</div>
+                <div>4th Target Address: {targetAddress3}</div>
+                <div>5th Target Address: {targetAddress4}</div>
             </div>}
             {isTarget && <div className="wallet-info">
                 <div>Wallet Address: {walletAddressTarget}</div>
                 <div>Account Name: {accountNameTarget}</div>
-                <div>Target Address: {targetAddressTarget}</div>
+                {/*<div>Target Address: {targetAddressTarget}</div>*/}
                 <div>Wallet Balance: {walletBalanceTarget} Dev SOL</div>
                 <div>Wallet LP Token: {walletLPTokenTarget} LPSFC</div>
                 <div>Wallet Stable Coin: {walletStableCoinTarget} SFC - VND</div>
@@ -3994,7 +3908,8 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
 }
 const App: FC = () => {
     const network = WalletAdapterNetwork.Devnet;
-    const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+    const endpoint1 = useMemo(() => clusterApiUrl(network), [network]);
+    const endpoint2 = "https://late-powerful-wish.solana-devnet.quiknode.pro/5f5c1cb330ba871d292f49cd0d4df60b5b9d7232";
     const wallets = useMemo(() => [], []);
     const onError = useCallback(
         (error: WalletNotConnectedError) => {
@@ -4004,12 +3919,12 @@ const App: FC = () => {
         []
     );
     return (
-        <ConnectionProvider endpoint={endpoint}>
+        <ConnectionProvider endpoint={endpoint1}>
             <div className="wallets-container">
                 <WalletProvider wallets={wallets} autoConnect onError={onError}>
                     <WalletModalProvider>
                         <WalletMultiButton />
-                        <WalletComponent endpoint={endpoint} />
+                        <WalletComponent endpoint={endpoint2} />
                     </WalletModalProvider>
                 </WalletProvider>
             </div>
