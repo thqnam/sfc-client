@@ -53,8 +53,22 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
     const [subIDWalletLPTokenTarget, setSubIDWalletLPTokenTarget] = useState(0);
     const [lpTokenSupply, setlpTokenSupply] = useState<number | null>(null);
     const [programTarget, setProgramTarget] = useState<Program | null>(null);
+    const [programBlog, setProgramBlog] = useState<Program | null>(null);
+    const [blogTitle, setBlogTitle] = useState<String | null>(null);
+    const [blogBody, setBlogBody] = useState<String | null>(null);
+    const [blogCredit, setBlogCredit] = useState<String | null>(null);
+    const [blogPostCount, setBlogPostCount] = useState<number | null>(null);
+    const [blogAuthor, setBlogAuthor] = useState<String | null>(null);
+    const [postTitle, setPostTitle] = useState<String | null>(null);
+    const [postBody, setPostBody] = useState<String | null>(null);
+    const [postCredit, setPostCredit] = useState<String | null>(null);
+    const [postEntry, setPostEntry] = useState<number | null>(null);
+    const [postAuthor, setPostAuthor] = useState<String | null>(null);
+    const [subIDPostEntry, setSubIDPostEntry] = useState(0);
     const [isTarget, setIsTarget] = useState<boolean | null>(null);
     const [isNonTarget, setIsNonTarget] = useState<boolean | null>(null);
+    const [isBlog, setIsBlog] = useState<boolean | null>(null);
+    const [isPost, setIsPost] = useState<boolean | null>(null);
     const [isLockTarget, setIsLockTarget] = useState<boolean | null>(null);
     const [isNonLockTarget, setIsNonLockTarget] = useState<boolean | null>(null);
     const [isUseVND, setIsUseVND] = useState<boolean | null>(null);
@@ -146,6 +160,132 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         }
         return pda;
     }, [programTarget]);
+    const fetchBlogInfo = useCallback(async () => {
+        let thatPubkey: any;
+        if (publicKey) {
+            thatPubkey = publicKey;
+        } else {
+            console.error('You not yet choose wallet');
+        }
+        const [pda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("blog_v1"), thatPubkey.toBuffer()],
+            new PublicKey("2d3X5LM44zuP6dpQ6GxjfDyZfgkfBEG2NBU6MfwGzYAj")
+        );
+        let accountInfo: any;
+        function processAccountInfo() {
+            if (accountInfo !== undefined) {
+                if (accountInfo.authority.toBase58()) {
+                    const BlogAuthor = accountInfo.authority.toBase58();
+                    setBlogAuthor(BlogAuthor);
+                } else {
+                    setBlogAuthor("Non Info");
+                }
+                if (accountInfo.title) {
+                    const BlogTitle = accountInfo.title;
+                    setBlogTitle(BlogTitle);
+                } else {
+                    setBlogTitle("Non Info");
+                }
+                if (accountInfo.body) {
+                    const BlogBody = accountInfo.body;
+                    setBlogBody(BlogBody);
+                } else {
+                    setBlogBody("Non Info");
+                }
+                if (accountInfo.credit) {
+                    const BlogCredit = accountInfo.credit;
+                    setBlogCredit(BlogCredit);
+                } else {
+                    setBlogCredit("Non Info");
+                }
+                if (accountInfo.postCount) {
+                    const BlogPostCount = accountInfo.postCount;
+                    setBlogPostCount(BlogPostCount);
+                } else {
+                    setBlogPostCount(0);
+                }
+            } else {
+                console.error("Account info is not yet fetched.");
+            }
+        }
+        if (programBlog) {
+            programBlog.account.blog.fetch(pda)
+                .then(info => {
+                    accountInfo = info;
+                    processAccountInfo();
+                })
+                .catch(error => {
+                    console.error('Error fetching account info:', error);
+                });
+        }
+        return pda;
+    }, [programBlog, publicKey]);
+    const fetchPostInfo = useCallback(async (PostEntry: number) => {
+        let thatPubkey: any;
+        if (publicKey) {
+            thatPubkey = publicKey;
+        } else {
+            console.error('You not yet choose wallet');
+        }
+        const [blogPDA] = PublicKey.findProgramAddressSync(
+            [Buffer.from("blog_v1"), thatPubkey.toBuffer()],
+            new PublicKey("2d3X5LM44zuP6dpQ6GxjfDyZfgkfBEG2NBU6MfwGzYAj")
+        );
+        const [postPDA] = PublicKey.findProgramAddressSync(
+            [Buffer.from("post_v1"),
+            blogPDA.toBuffer(),
+            new BN(PostEntry).toArrayLike(Buffer)],
+            new PublicKey("2d3X5LM44zuP6dpQ6GxjfDyZfgkfBEG2NBU6MfwGzYAj")
+        );
+        let accountInfo: any;
+        function processAccountInfo() {
+            if (accountInfo !== undefined) {
+                if (accountInfo.authority.toBase58()) {
+                    const PostAuthor = accountInfo.authority.toBase58();
+                    setPostAuthor(PostAuthor);
+                } else {
+                    setPostAuthor("Non Info");
+                }
+                if (accountInfo.title) {
+                    const PostTitle = accountInfo.title;
+                    setPostTitle(PostTitle);
+                } else {
+                    setPostTitle("Non Info");
+                }
+                if (accountInfo.body) {
+                    const PostBody = accountInfo.body;
+                    setPostBody(PostBody);
+                } else {
+                    setPostBody("Non Info");
+                }
+                if (accountInfo.credit) {
+                    const PostCredit = accountInfo.credit;
+                    setPostCredit(PostCredit);
+                } else {
+                    setPostCredit("Non Info");
+                }
+                if (accountInfo.entry) {
+                    const PostEntry = accountInfo.entry;
+                    setBlogPostCount(PostEntry);
+                } else {
+                    setBlogPostCount(0);
+                }
+            } else {
+                console.error("Account info is not yet fetched.");
+            }
+        }
+        if (programBlog) {
+            programBlog.account.post.fetch(postPDA)
+                .then(info => {
+                    accountInfo = info;
+                    processAccountInfo();
+                })
+                .catch(error => {
+                    console.error('Error fetching account info:', error);
+                });
+        }
+        return postPDA;
+    }, [programBlog, publicKey]);
     const fetchTargetInfo = useCallback(async () => {
         let thatPubkey: any;
         if (publicKey) {
@@ -277,6 +417,14 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
     const fetchBalance = useCallback(async () => {
         setIsNonTarget(true);
         setIsTarget(false);
+        setIsBlog(false);
+        setIsPost(false);
+    }, []);
+    const watchBlog = useCallback(async () => {
+        setIsNonTarget(false);
+        setIsTarget(false);
+        setIsBlog(true);
+        setIsPost(false);
     }, []);
     const switchNonLockTarget = useCallback(async () => {
         setIsNonLockTarget(true);
@@ -295,7 +443,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
         setIsNonUseVND(false);
     }, []);
     useEffect(() => {
-        if (programTarget instanceof Program) {
+        if (programTarget instanceof Program || programBlog instanceof Program) {
             setVisible(true);
         } else {
             let thatWallet: any;
@@ -319,13 +467,26 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 .catch((error) => {
                     console.error("Error fetching IDL: ", error);
                 });
+            Program.fetchIdl("2d3X5LM44zuP6dpQ6GxjfDyZfgkfBEG2NBU6MfwGzYAj")
+                .then((IDL) => {
+                    if (IDL === null) {
+                        console.error("Error: IDL not found");
+                    } else {
+                        const programBlog = new Program(IDL, new PublicKey("2d3X5LM44zuP6dpQ6GxjfDyZfgkfBEG2NBU6MfwGzYAj"), getProvider());
+                        setProgramBlog(programBlog);
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error fetching IDL: ", error);
+                });
         }
-    }, [connection, programTarget, setProgramTarget, setVisible, wallet]);
+    }, [connection, programBlog, programTarget, setProgramTarget, setProgramBlog, setVisible, wallet]);
     useEffect(() => {
         if (wallet.connected) {
             fetchBalance();
             switchNonLockTarget();
             switchNonUseVND();
+            setPostEntry(0);
         } else {
             setVisible(true);
         }
@@ -420,6 +581,39 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 }
             });
     }, [connection, publicKey, fetchVaultInfo]);
+    useEffect(() => {
+        if (!publicKey) {
+            return;
+        }
+        fetchBlogInfo()
+            .then((result) => {
+                if (result !== publicKey) {
+                    connection.onAccountChange(
+                        result,
+                        () => {
+                            fetchBlogInfo();
+                        },
+                        "finalized",
+                    );
+                }
+            });
+    }, [connection, publicKey, fetchBlogInfo]);
+    useEffect(() => {
+        if (!postEntry) {
+            return;
+        }
+        fetchPostInfo(postEntry)
+            .then((result) => {
+                let subID = connection.onAccountChange(
+                    result,
+                    () => {
+                        fetchPostInfo(postEntry);
+                    },
+                    "finalized",
+                );
+                setSubIDPostEntry(subID);
+            });
+    }, [connection, fetchPostInfo, postEntry]);
     useEffect(() => {
         if (!publicKey) {
             return;
@@ -727,11 +921,36 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                 setTargetKey(flashTargetKey);
             }
             setIsNonTarget(false);
+            setIsBlog(false);
             setIsTarget(true);
+            setIsPost(false);
         } catch (error) {
             alert(error.message);
         }
     }, [input3, targetKey, subIDMimeInforTarget, /*subIDTargetInforTarget,*/ subIDWalletInforTarget, subIDWalletLPTokenTarget, subIDWalletStableCoinTarget, connection]);
+    const watchPost = useCallback(async () => {
+        let modernPostEntry: any;
+        if (input4 === "") {
+            return;
+        } else {
+            let input4String = input4;
+            modernPostEntry = Number(input4String).valueOf();
+        }
+        try {
+            if (modernPostEntry !== postEntry) {
+                if (subIDPostEntry !== 0) {
+                    await connection.removeAccountChangeListener(subIDPostEntry);
+                }
+                setPostEntry(modernPostEntry);
+            }
+            setIsNonTarget(false);
+            setIsBlog(false);
+            setIsTarget(false);
+            setIsPost(true);
+        } catch (error) {
+            alert(error.message);
+        }
+    }, [input4, postEntry, subIDPostEntry, connection]);
     const finalTransaction = useCallback(async (isTarget: boolean, transaction: Transaction, connection: Connection) => {
         let SolFee: any;
         if (input4 !== "") {
@@ -739,7 +958,6 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             let feeIntru = ComputeBudgetProgram.setComputeUnitPrice({ microLamports: SolFee });
             transaction.add(feeIntru);
         }
-
         let txHash = await wallet.sendTransaction(transaction, connection);
         const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
         await connection.confirmTransaction(
@@ -1241,14 +1459,11 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             let amount = Number(input2).valueOf();
             let realamount = amount * LAMPORTS_PER_SOL;
             const amountBN = new BN(realamount);
-            let ratio = Number(poolRatio).valueOf();
-            let realratio = ratio * LAMPORTS_PER_SOL;
-            const ratioBN = new BN(realratio);
             const bumpBN = new BN(bump);
             if (programTarget) {
                 alert(`You providing your liquidity to the vault`);
                 let txIntru1 = await programTarget.methods
-                    .provideLiquidity(amountBN, ratioBN, bumpBN)
+                    .provideLiquidity(amountBN, bumpBN)
                     .accounts({
                         donatorsfc: tokenAcc.value[0].pubkey,
                         vaultsfc: tokenAcc2.value[0].pubkey,
@@ -1277,7 +1492,261 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateMintLP, publicKey, endpoint, input2, poolRatio, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [handleButtonSimulateMintLP, publicKey, endpoint, input2, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
+    const handleButtonCreateBlog = useCallback(async () => {
+        try {
+            let thatPubkey: any, BlogTitle: any, BlogBody: any, BlogCredit: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [blogPDA] = PublicKey.findProgramAddressSync(
+                [Buffer.from("blog_v1"), thatPubkey.toBuffer()],
+                new PublicKey("2d3X5LM44zuP6dpQ6GxjfDyZfgkfBEG2NBU6MfwGzYAj")
+            );
+            const connection = new Connection(endpoint, 'finalized');
+            if (input !== "") {
+                BlogTitle = input;
+            } else {
+                BlogTitle = "";
+            }
+            if (input2 !== "") {
+                BlogBody = input2;
+            } else {
+                BlogBody = "";
+            }
+            if (input3 !== "") {
+                BlogCredit = input3;
+            } else {
+                BlogCredit = "";
+            }
+            if (programBlog) {
+                alert("Your blog is creating");
+                let txHash = await programBlog.methods
+                    .createBlog(BlogTitle, BlogBody, BlogCredit)
+                    .accounts({
+                        blogAccount: blogPDA,
+                        authority: thatPubkey,
+                        systemProgram: SystemProgram.programId,
+                    })
+                    .rpc();
+                const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+                await connection.confirmTransaction(
+                    {
+                        blockhash,
+                        lastValidBlockHeight,
+                        signature: txHash,
+                    },
+                    "finalized"
+                );
+                const solanaExplorer = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
+                const solScan = `https://solscan.io/tx/${txHash}?cluster=devnet`;
+                setsolanaExplorer(solanaExplorer);
+                setsolScan(solScan);
+                watchBlog();
+                alert("Your blog is created");
+            }
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [publicKey, endpoint, input, input2, input3, programBlog, watchBlog]);
+    const handleButtonCreatePost = useCallback(async () => {
+        try {
+            let thatPubkey: any, PostTitle: any, PostBody: any, PostCredit: any, PostEntry: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [blogPDA] = PublicKey.findProgramAddressSync(
+                [Buffer.from("blog_v1"), thatPubkey.toBuffer()],
+                new PublicKey("2d3X5LM44zuP6dpQ6GxjfDyZfgkfBEG2NBU6MfwGzYAj")
+            );
+            if (blogPostCount) {
+                PostEntry = blogPostCount;
+            }
+            const [postPDA] = PublicKey.findProgramAddressSync(
+                [Buffer.from("post_v1"),
+                blogPDA.toBuffer(),
+                new BN(PostEntry).toArrayLike(Buffer)],
+                new PublicKey("2d3X5LM44zuP6dpQ6GxjfDyZfgkfBEG2NBU6MfwGzYAj")
+            );
+            const connection = new Connection(endpoint, 'finalized');
+            if (input !== "") {
+                PostTitle = input;
+            } else {
+                PostTitle = "";
+            }
+            if (input2 !== "") {
+                PostBody = input2;
+            } else {
+                PostBody = "";
+            }
+            if (input3 !== "") {
+                PostCredit = input3;
+            } else {
+                PostCredit = "";
+            }
+            if (programBlog) {
+                alert("Your post is creating");
+                let txHash = await programBlog.methods
+                    .createPost(PostTitle, PostBody, PostCredit)
+                    .accounts({
+                        blogAccount: blogPDA,
+                        postAccount: postPDA,
+                        authority: thatPubkey,
+                        systemProgram: SystemProgram.programId,
+                    })
+                    .rpc();
+                const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+                await connection.confirmTransaction(
+                    {
+                        blockhash,
+                        lastValidBlockHeight,
+                        signature: txHash,
+                    },
+                    "finalized"
+                );
+                const solanaExplorer = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
+                const solScan = `https://solscan.io/tx/${txHash}?cluster=devnet`;
+                setsolanaExplorer(solanaExplorer);
+                setsolScan(solScan);
+                watchBlog();
+                alert("Your post is created");
+            }
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [publicKey, blogPostCount, endpoint, input, input2, input3, programBlog, watchBlog]);
+    const handleButtonUpdateBlog = useCallback(async () => {
+        try {
+            let thatPubkey: any, BlogTitle: any, BlogBody: any, BlogCredit: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [blogPDA] = PublicKey.findProgramAddressSync(
+                [Buffer.from("blog_v1"), thatPubkey.toBuffer()],
+                new PublicKey("2d3X5LM44zuP6dpQ6GxjfDyZfgkfBEG2NBU6MfwGzYAj")
+            );
+            const connection = new Connection(endpoint, 'finalized');
+            if (input !== "") {
+                BlogTitle = input;
+            } else {
+                BlogTitle = "";
+            }
+            if (input2 !== "") {
+                BlogBody = input2;
+            } else {
+                BlogBody = "";
+            }
+            if (input3 !== "") {
+                BlogCredit = input3;
+            } else {
+                BlogCredit = "";
+            }
+            if (programBlog) {
+                alert("Your blog is updating");
+                let txHash = await programBlog.methods
+                    .updateBlog(BlogTitle, BlogBody, BlogCredit)
+                    .accounts({
+                        blogAccount: blogPDA,
+                        authority: thatPubkey,
+                    })
+                    .rpc();
+                const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+                await connection.confirmTransaction(
+                    {
+                        blockhash,
+                        lastValidBlockHeight,
+                        signature: txHash,
+                    },
+                    "finalized"
+                );
+                const solanaExplorer = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
+                const solScan = `https://solscan.io/tx/${txHash}?cluster=devnet`;
+                setsolanaExplorer(solanaExplorer);
+                setsolScan(solScan);
+                watchBlog();
+                alert("Your blog is updated");
+            }
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [publicKey, endpoint, input, input2, input3, programBlog, watchBlog]);
+    const handleButtonUpdatePost = useCallback(async () => {
+        try {
+            let thatPubkey: any, PostTitle: any, PostBody: any, PostCredit: any, PostEntry: any;
+            if (publicKey) {
+                thatPubkey = publicKey;
+            } else {
+                console.error('You not yet choose wallet');
+            }
+            const [blogPDA] = PublicKey.findProgramAddressSync(
+                [Buffer.from("blog_v1"), thatPubkey.toBuffer()],
+                new PublicKey("2d3X5LM44zuP6dpQ6GxjfDyZfgkfBEG2NBU6MfwGzYAj")
+            );
+            if (postEntry) {
+                PostEntry = postEntry;
+            }
+            const [postPDA] = PublicKey.findProgramAddressSync(
+                [Buffer.from("post_v1"),
+                blogPDA.toBuffer(),
+                new BN(PostEntry).toArrayLike(Buffer)],
+                new PublicKey("2d3X5LM44zuP6dpQ6GxjfDyZfgkfBEG2NBU6MfwGzYAj")
+            );
+            const connection = new Connection(endpoint, 'finalized');
+            if (input !== "") {
+                PostTitle = input;
+            } else {
+                PostTitle = "";
+            }
+            if (input2 !== "") {
+                PostBody = input2;
+            } else {
+                PostBody = "";
+            }
+            if (input3 !== "") {
+                PostCredit = input3;
+            } else {
+                PostCredit = "";
+            }
+            if (programBlog) {
+                alert("Your post is updating");
+                let txHash = await programBlog.methods
+                    .updatePost(PostTitle, PostBody, PostCredit)
+                    .accounts({
+                        blogAccount: blogPDA,
+                        postAccount: postPDA,
+                        authority: thatPubkey,
+                    })
+                    .rpc();
+                const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+                await connection.confirmTransaction(
+                    {
+                        blockhash,
+                        lastValidBlockHeight,
+                        signature: txHash,
+                    },
+                    "finalized"
+                );
+                const solanaExplorer = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
+                const solScan = `https://solscan.io/tx/${txHash}?cluster=devnet`;
+                setsolanaExplorer(solanaExplorer);
+                setsolScan(solScan);
+                watchPost();
+                alert("Your post is updated");
+            }
+        } catch (error) {
+            console.log(error);
+            alert(error.message);
+        }
+    }, [publicKey, postEntry, endpoint, input, input2, input3, programBlog, watchPost]);
     const handleButtonLockTarget = useCallback(async (targetKey: PublicKey) => {
         let txIntru: TransactionInstruction;
         try {
@@ -1344,14 +1813,11 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             let amount = Number(input2).valueOf();
             let realamount = amount * LAMPORTS_PER_SOL;
             const amountBN = new BN(realamount);
-            let ratio = Number(poolRatio).valueOf();
-            let realratio = ratio * LAMPORTS_PER_SOL;
-            const ratioBN = new BN(realratio);
             const bumpBN = new BN(bump);
             if (programTarget) {
                 alert(`You providing your liquidity to the vault`);
                 let txIntru1 = await programTarget.methods
-                    .provideLiquidity(amountBN, ratioBN, bumpBN)
+                    .provideLiquidity(amountBN, bumpBN)
                     .accounts({
                         donatorsfc: tokenAcc.value[0].pubkey,
                         vaultsfc: tokenAcc2.value[0].pubkey,
@@ -1392,7 +1858,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateMintLP, publicKey, endpoint, input2, poolRatio, programTarget, handleButtonTransferLPLinkCall, input, input3, finalTransaction, handleButtonUserMessageTargetLinkCall, handleButtonLockTarget]);
+    }, [handleButtonSimulateMintLP, publicKey, endpoint, input2, programTarget, handleButtonTransferLPLinkCall, input, input3, finalTransaction, handleButtonUserMessageTargetLinkCall, handleButtonLockTarget]);
     const handleButtonSummonLPLC = useCallback(async () => {
         try {
             let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
@@ -1647,13 +2113,10 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             let realamount = amount * LAMPORTS_PER_SOL;
             const amountBN = new BN(realamount);
             const bumpBN = new BN(bump);
-            let ratio = Number(poolRatio).valueOf();
-            let realratio = ratio * LAMPORTS_PER_SOL;
-            const ratioBN = new BN(realratio);
             if (programTarget) {
                 alert(`You withdrawing your liquidity from the vault`);
                 let txIntru1 = await programTarget.methods
-                    .withdrawLiquidity(amountBN, ratioBN, bumpBN)
+                    .withdrawLiquidity(amountBN, bumpBN)
                     .accounts({
                         donatorsfc: tokenAcc.value[0].pubkey,
                         vaultsfc: tokenAcc2.value[0].pubkey,
@@ -1682,7 +2145,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [handleButtonSimulateBurnLP, publicKey, endpoint, input2, poolRatio, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
+    }, [handleButtonSimulateBurnLP, publicKey, endpoint, input2, programTarget, input, finalTransaction, handleButtonUserMessageLinkCall]);
     const handleButtonTributeLPTarget = useCallback(async () => {
         let targetKey: any;
         if (input3 === "") {
@@ -1721,13 +2184,10 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             let realamount = amount * LAMPORTS_PER_SOL;
             const amountBN = new BN(realamount);
             const bumpBN = new BN(bump);
-            let ratio = Number(poolRatio).valueOf();
-            let realratio = ratio * LAMPORTS_PER_SOL;
-            const ratioBN = new BN(realratio);
             if (programTarget) {
                 alert(`You withdrawing your liquidity from the vault`);
                 let txIntru1 = await programTarget.methods
-                    .withdrawLiquidity(amountBN, ratioBN, bumpBN)
+                    .withdrawLiquidity(amountBN, bumpBN)
                     .accounts({
                         donatorsfc: tokenAcc.value[0].pubkey,
                         vaultsfc: tokenAcc2.value[0].pubkey,
@@ -1774,7 +2234,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [input3, handleButtonSimulateBurnLP, publicKey, endpoint, input2, poolRatio, programTarget, handleButtonTransferSFCLinkCall, handleButtonTransferSolLinkCall, handleButtonSimulateBurnLPPlus, input, handleButtonLockTarget, finalTransaction, handleButtonUserMessageTargetLinkCall]);
+    }, [input3, handleButtonSimulateBurnLP, publicKey, endpoint, input2, programTarget, handleButtonTransferSFCLinkCall, handleButtonTransferSolLinkCall, handleButtonSimulateBurnLPPlus, input, handleButtonLockTarget, finalTransaction, handleButtonUserMessageTargetLinkCall]);
     const handleButtonTributeLPLC = useCallback(async () => {
         try {
             let mintString = "8aHXuC6HjPNQYiBxNhqHD2CN5RxvcqRu5hvKhWHF6He";
@@ -2000,7 +2460,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             alert(error.message);
         }
     }, [publicKey, endpoint, input2, programTarget]);
-    const handleButtonSummonSol = useCallback(async () => {
+    /*const handleButtonSummonSol = useCallback(async () => {
         let txIntru: TransactionInstruction;
         try {
             let thatPubkey: any;
@@ -2044,7 +2504,7 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, endpoint, input2, finalTransaction]);
+    }, [publicKey, endpoint, input2, finalTransaction]);*/
     const handleButtonTributeStable = useCallback(async () => {
         let txIntru: TransactionInstruction;
         try {
@@ -2104,7 +2564,8 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             alert(error.message);
         }
     }, [publicKey, endpoint, input2, finalTransaction]);
-    /*const handleButtonTributeSol = useCallback(async () => {
+    const handleButtonTributeSol = useCallback(async () => {
+        let txIntru: TransactionInstruction;
         try {
             let thatPubkey: any;
             if (publicKey) {
@@ -2127,17 +2588,17 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     } else {
                         alert(`You tributing your Sol to the vault`);
                         const programTarget = new Program(IDL, new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX"), getProvider());
-                        let txHash = await programTarget.methods
+                        txIntru = await programTarget.methods
                             .tributeSol(amountBN)
                             .accounts({
                                 vault: pda,
                                 signer: thatPubkey,
                                 systemProgram: SystemProgram.programId,
                             })
-                            .rpc();
-                        await connection.confirmTransaction(txHash);
+                            .instruction();
+                        let transaction = new Transaction().add(txIntru);
+                        await finalTransaction(false, transaction, connection);
                         alert(`You has been tributed your Sol to the vault successful`);
-                        finalTransaction(txHash, false);
                     }
                 })
                 .catch((error) => {
@@ -2148,67 +2609,67 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             console.log(error);
             alert(error.message);
         }
-    }, [publicKey, endpoint, input2, fetchBalance]);
-    const handleButtonSummonStable = useCallback(async () => {
-        try {
-            const [vaultDataPda, bump] = PublicKey.findProgramAddressSync(
-                [Buffer.from("vault")],
-                new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-            );
-            let thatPubkey: any;
-            if (publicKey) {
-                thatPubkey = publicKey;
-            } else {
-                console.error('You not yet choose wallet');
-            };
-            const connection = new Connection(endpoint, 'finalized');
-            const tokenFilt: TokenAccountsFilter = {
-                mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
-                programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
-            };
-            const tokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFilt);
-            const tokenAcc2 = await connection.getParsedTokenAccountsByOwner(vaultDataPda, tokenFilt);
-            try {
-                let amount: number = Number(input2).valueOf();
-                let realamount = amount * LAMPORTS_PER_SOL;
-                const amountBN = new BN(realamount);
-                const bumpBN = new BN(bump);
-                Program.fetchIdl("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
-                    .then(async (IDL) => {
-                        if (IDL === null) {
-                            console.error("Error: IDL not found");
-                        } else {
-                            alert(`You summoning your SFC - VND from the Vault`);
-                            const programTarget = new Program(IDL, new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX"), getProvider());
-                            let txHash = await programTarget.methods
-                                .summonStable(amountBN, bumpBN)
-                                .accounts({
-                                    donator: tokenAcc.value[0].pubkey,
-                                    vault: tokenAcc2.value[0].pubkey,
-                                    authority: vaultDataPda,
-                                    signer: thatPubkey,
-                                    token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
-                                })
-                                .rpc();
-                            await connection.confirmTransaction(txHash);
-                            alert(`You has been summoned your SFC - VND from the Vault successful`);
-                            finalTransaction(txHash, false);
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Error fetching inner IDL: ", error);
-                        alert(error.message);
-                    });
+    }, [publicKey, endpoint, input2, finalTransaction]);
+    // const handleButtonSummonStable = useCallback(async () => {
+    //     try {
+    //         const [vaultDataPda, bump] = PublicKey.findProgramAddressSync(
+    //             [Buffer.from("vault")],
+    //             new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+    //         );
+    //         let thatPubkey: any;
+    //         if (publicKey) {
+    //             thatPubkey = publicKey;
+    //         } else {
+    //             console.error('You not yet choose wallet');
+    //         };
+    //         const connection = new Connection(endpoint, 'finalized');
+    //         const tokenFilt: TokenAccountsFilter = {
+    //             mint: new PublicKey("4TndGJA5DeL6xZgdPLK3VETy6MVVuZgUWEdPk4KUMNCQ"),
+    //             programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+    //         };
+    //         const tokenAcc = await connection.getParsedTokenAccountsByOwner(thatPubkey, tokenFilt);
+    //         const tokenAcc2 = await connection.getParsedTokenAccountsByOwner(vaultDataPda, tokenFilt);
+    //         try {
+    //             let amount: number = Number(input2).valueOf();
+    //             let realamount = amount * LAMPORTS_PER_SOL;
+    //             const amountBN = new BN(realamount);
+    //             const bumpBN = new BN(bump);
+    //             Program.fetchIdl("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX")
+    //                 .then(async (IDL) => {
+    //                     if (IDL === null) {
+    //                         console.error("Error: IDL not found");
+    //                     } else {
+    //                         alert(`You summoning your SFC - VND from the Vault`);
+    //                         const programTarget = new Program(IDL, new PublicKey("F7TehQFrx3XkuMsLPcmKLz44UxTWWfyodNLSungdqoRX"), getProvider());
+    //                         let txHash = await programTarget.methods
+    //                             .summonStable(amountBN, bumpBN)
+    //                             .accounts({
+    //                                 donator: tokenAcc.value[0].pubkey,
+    //                                 vault: tokenAcc2.value[0].pubkey,
+    //                                 authority: vaultDataPda,
+    //                                 signer: thatPubkey,
+    //                                 token: new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+    //                             })
+    //                             .rpc();
+    //                         await connection.confirmTransaction(txHash);
+    //                         alert(`You has been summoned your SFC - VND from the Vault successful`);
+    //                         finalTransaction(txHash, false);
+    //                     }
+    //                 })
+    //                 .catch((error) => {
+    //                     console.error("Error fetching inner IDL: ", error);
+    //                     alert(error.message);
+    //                 });
 
-            } catch (e) {
-                console.log(`${e}`);
-                alert(e);
-            }
-        } catch (error) {
-            console.error("Error fetching outer IDL: ", error);
-            alert(error.message);
-        }
-    }, [publicKey, endpoint, input2, fetchBalance]);*/
+    //         } catch (e) {
+    //             console.log(`${e}`);
+    //             alert(e);
+    //         }
+    //     } catch (error) {
+    //         console.error("Error fetching outer IDL: ", error);
+    //         alert(error.message);
+    //     }
+    // }, [publicKey, endpoint, input2, fetchBalance]);
     const handleButtonUserMessageTarget = useCallback(async () => {
         let targetKey: any;
         if (input3 === "") {
@@ -3794,11 +4255,13 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             <div>
                 <button onClick={switchNonLockTarget} className={Boolean(isNonLockTarget) ? "buttonPress" : ""} >Non Flash Target</button>
                 <button onClick={switchLockTarget} className={(Boolean(isLockTarget)) ? "buttonPress" : ""}>Use Flash Target</button>
-                <input type="text" value={input} onChange={handleInputChange} size={50} />
-                <input type="text" value={input3} onChange={handleInputChange3} size={50} />
+                <input type="text" value={input} onChange={handleInputChange} size={50} placeholder='input' />
+                <input type="text" value={input3} onChange={handleInputChange3} size={50} placeholder='input3' />
                 {isLockTarget && isNonUseVND && <button onClick={handleButtonClick}>Watch Target</button>}
                 {/*isLockTarget && isNonUseVND && <button onClick={handleButtonLockTarget}>Lock Target</button>*/}
                 {isNonLockTarget && isNonUseVND && <button onClick={fetchBalance}>Watch Mime</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={watchBlog}>Watch Blog</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={watchPost}>Watch Post</button>}
                 {isLockTarget && isNonUseVND && <button onClick={handleButtonTransferAsset}>Transfer VND</button>}
                 {isLockTarget && isUseVND && <button onClick={handleButtonTributeTarget}>Mint SFC - VND</button>}
                 {isLockTarget && isUseVND && <button onClick={handleButtonSummonTargetNew}>Burn SFC - VND</button>}
@@ -3814,8 +4277,8 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                         Solana Explorer
                     </button>
                 </a>
-                {/*isNonLockTarget && isNonUseVND && <button onClick={handleButtonTributeSol}>Tribute Dev Sol</button>*/}
-                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonSummonSol}>Summon Dev Sol</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonTributeSol}>Tribute Dev Sol</button>}
+                {/* {isNonLockTarget && isNonUseVND && <button onClick={handleButtonSummonSol}>Summon Dev Sol</button>} */}
                 {isNonLockTarget && isNonUseVND && <button onClick={handleButtonBuySol}>Buy Dev Sol</button>}
                 {isNonLockTarget && isNonUseVND && <button onClick={handleButtonSellSol}>Sell Dev Sol</button>}
                 {isNonLockTarget && isNonUseVND && <button onClick={handleButtonSummonLP}>Mint LP Token</button>}
@@ -3830,10 +4293,14 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
             <div>
                 <button onClick={switchNonUseVND} className={Boolean(isNonUseVND) ? "buttonPress" : ""}>Non VND Acc</button>
                 <button onClick={switchUseVND} className={Boolean(isUseVND) ? "buttonPress" : ""}>Use VND Acc</button>
-                <input type="text" value={input2} onChange={handleInputChange2} size={50} />
-                <input type="text" value={input4} onChange={handleInputChange4} size={50} />
+                <input type="text" value={input2} onChange={handleInputChange2} size={50} placeholder='input2' />
+                <input type="text" value={input4} onChange={handleInputChange4} size={50} placeholder='input4' />
                 {isLockTarget && isUseVND && <button onClick={handleButtonDepositAsset}>Deposit VND</button>}
                 {isLockTarget && isUseVND && <button onClick={handleButtonWithdrawAsset}>Withdraw VND</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonCreateBlog}>Create Blog</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonUpdateBlog}>Update Blog</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonCreatePost}>Create Post</button>}
+                {isNonLockTarget && isNonUseVND && <button onClick={handleButtonUpdatePost}>Update Post</button>}
                 {isLockTarget && isNonUseVND && <button onClick={handleButtonChangeNameTarget}>Change Name</button>}
                 {isLockTarget && isNonUseVND && <button onClick={handleButtonUserMessageTarget}>User Message</button>}
                 {isNonLockTarget && isNonUseVND && <button onClick={handleButtonTributeStable}>Tribute Stable</button>}
@@ -3902,6 +4369,20 @@ const WalletComponent: FC<{ endpoint: string }> = ({ endpoint }) => {
                     <img src="https://i.ibb.co/vxRnDKx/SFC-VND.jpg" alt="SFC - VND Logo" title='SFC - VND Logo' width="100" height="100" />
                     <img src="https://i.ibb.co/wMRXC4M/LP-Token-Logo.webp" alt="LPSFC Logo" title='LPSFC Logo' width="100" height="100" />
                 </div>
+            </div>}
+            {isBlog && <div className="wallet-info">
+                <div>Blog Author: {blogAuthor}</div>
+                <div>Blog Title: {blogTitle}</div>
+                <div>Blog Body: {blogBody}</div>
+                <div>Blog Credit: {blogCredit}</div>
+                <div>Blog Post Count: {blogPostCount}</div>
+            </div>}
+            {isPost && <div className="wallet-info">
+                <div>Post Author: {postAuthor}</div>
+                <div>Post Title: {postTitle}</div>
+                <div>Post Body: {postBody}</div>
+                <div>Post Credit: {postCredit}</div>
+                <div>Post Entry: {postEntry}</div>
             </div>}
         </>
     );
